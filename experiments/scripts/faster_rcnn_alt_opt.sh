@@ -7,6 +7,7 @@
 # ./experiments/scripts/faster_rcnn_alt_opt.sh 0 VGG_CNN_M_1024 pascal_voc \
 #   --set EXP_DIR foobar RNG_SEED 42 TRAIN.SCALES "[400, 500, 600, 700]"
 
+
 set -x
 set -e
 
@@ -28,6 +29,12 @@ case $DATASET in
     TEST_IMDB="voc_2007_test"
     PT_DIR="pascal_voc"
     ITERS=40000
+    ;;
+  nyudv2)
+    TRAIN_IMDB="nyud_v2_trainval_rgb"
+    TEST_IMDB="nyud_v2__test_rgb"
+    PT_DIR="nyudv2"
+    ITERS=20000
     ;;
   coco)
     echo "Not implemented: use experiments/scripts/faster_rcnn_end2end.sh for coco"
