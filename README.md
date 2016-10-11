@@ -6,31 +6,13 @@ Faster R-CNN is released under the MIT License.
 
 
 ### Contents
-1. [Requirements: software](#requirements-software)
-2. [Requirements: hardware](#requirements-hardware)
-3. [Basic installation](#installation-sufficient-for-the-demo)
-4. [Demo](#demo)
-5. [Beyond the demo: training and testing](#beyond-the-demo-installation-for-training-and-testing-models)
-6. [Usage](#usage)
+1. [Basic installation](#installation-sufficient-for-the-demo)
+2. [Demo](#demo)
+3. [Taining instrallation] (#installation for training)
+4. [Train](#Train)
 
-### Requirements: software
 
-1. Requirements for `Caffe` and `pycaffe` (see: [Caffe installation instructions](http://caffe.berkeleyvision.org/installation.html))
-
-  **Note:** Caffe *must* be built with support for Python layers!
-
-  ```make
-  # In your Makefile.config, make sure to have this line uncommented
-  WITH_PYTHON_LAYER := 1
-  # Unrelatedly, it's also recommended that you use CUDNN
-  USE_CUDNN := 1
-  ```
-
-  You can download my [Makefile.config](http://www.cs.berkeley.edu/~rbg/fast-rcnn-data/Makefile.config) for reference.
-2. Python packages you might not have: `cython`, `python-opencv`, `easydict`
-3. [Optional] MATLAB is required for **official** PASCAL VOC evaluation only. The code now includes unofficial Python evaluation code.
-
-### Installation (sufficient for the demo)
+### Installation
 
 1. Clone the repository
   ```Shell
@@ -44,7 +26,7 @@ Faster R-CNN is released under the MIT License.
     make
     ```
 
-4. Build Caffe and pycaffe
+3. Build Caffe and pycaffe
     ```Shell
     cd $FRCN_ROOT/caffe-fast-rcnn
     # Now follow the Caffe installation instructions here:
@@ -72,7 +54,7 @@ cd $FRCN_ROOT
 ./tools/demo.py
 ```
 
-### Beyond the demo: installation for training and testing models
+### installation for training
 1. Download the training, validation, test data and VOCdevkit
 
 	```Shell
