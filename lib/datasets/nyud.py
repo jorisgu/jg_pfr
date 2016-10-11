@@ -98,7 +98,7 @@ class nyud(imdb):
 
     def _get_default_path(self):
         """
-        Return the default path where nyud_vX is expected to be installed.
+        Return the default path where nyud_vX is expected to be installed. 
         """
         return os.path.join(cfg.DATA_DIR, 'nyud', 'nyud_' + self._year)
 
