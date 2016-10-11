@@ -9,7 +9,7 @@ Faster R-CNN is released under the MIT License.
 1. [Basic installation](#installation-sufficient-for-the-demo)
 2. [Demo](#demo)
 3. [Taining instrallation] (#installation for training)
-4. [Train](#Train)
+4. [Train](#train)
 
 
 ### Installation
