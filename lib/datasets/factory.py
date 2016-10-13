@@ -21,10 +21,10 @@ for year in ['2007', '2012']:
         name = 'voc_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year: pascal_voc(split, year))
 
-# Set up nyud_<version>_<split>
+# Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
     for split in ['train', 'val', 'trainval', 'test']:
-        for chanel in ['rgb', 'd', 'rgbd', 'raw_d']:
+        for chanel in ['d_raw_focus_8bits','d_raw_focus_16bits','d_raw_normal_8bits','d_raw_normal_16bits','rgb']:
             name = 'nyud_{}_{}_{}'.format(year, split, chanel)
             __sets[name] = (lambda split=split, year=year, chanel=chanel: nyud(split, year, chanel))
 

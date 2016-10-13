@@ -20,7 +20,7 @@ from fast_rcnn.config import cfg
 
 class nyud(imdb):
     def __init__(self, image_set, year, chanel, devkit_path=None):
-        imdb.__init__(self, 'voc_' + year + '_' + image_set)
+        imdb.__init__(self, 'nyud_' + year + '_' + image_set)
         self._year = year
         self._image_set = image_set
         self.chanel = chanel
@@ -98,7 +98,7 @@ class nyud(imdb):
 
     def _get_default_path(self):
         """
-        Return the default path where nyud_vX is expected to be installed. 
+        Return the default path where nyud_vX is expected to be installed.
         """
         return os.path.join(cfg.DATA_DIR, 'nyud', 'nyud_' + self._year)
 
@@ -200,10 +200,16 @@ class nyud(imdb):
             # Exclude the samples labeled as difficult
             non_diff_objs = [
                 obj for obj in objs if int(obj.find('difficult').text) == 0]
+
+
             # if len(non_diff_objs) != len(objs):
             #     print 'Removed {} difficult objects'.format(
             #         len(objs) - len(non_diff_objs))
             objs = non_diff_objs
+        only_in_cls_obj = [
+            obj for obj in objs if obj.find('name').text.lower().strip() in self._classes]
+        objs = only_in_cls_obj
+
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
@@ -276,14 +282,17 @@ class nyud(imdb):
             '{:s}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
+            # todo
             'VOC' + self._year,
             'ImageSets',
             'Main',
             self._image_set + '.txt')
         cachedir = os.path.join(self._devkit_path, 'annotations_cache')
         aps = []
+        # todo
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
+        # todo
         print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)

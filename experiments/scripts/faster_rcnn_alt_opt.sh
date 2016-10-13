@@ -31,7 +31,7 @@ case $DATASET in
     ITERS=40000
     ;;
   nyudv2)
-    TRAIN_IMDB="nyud_v2_trainval_rgb"
+    TRAIN_IMDB="nyud_v2_train_rgb"
     TEST_IMDB="nyud_v2__test_rgb"
     PT_DIR="nyudv2"
     ITERS=20000
