@@ -20,7 +20,7 @@ from fast_rcnn.config import cfg
 
 class nyud(imdb):
     def __init__(self, image_set, year, chanel, devkit_path=None):
-        imdb.__init__(self, 'nyud_' + year + '_' + image_set)
+        imdb.__init__(self, 'nyud_' + year + '_' + image_set + '_' + chanel)
         self._year = year
         self._image_set = image_set
         self.chanel = chanel
@@ -36,11 +36,10 @@ class nyud(imdb):
                          'sofa','table','door','window','bookshelf',
                          'picture','counter','blinds','desk','shelves',
                          'curtain','dresser','pillow','mirror','floor mat',
-                         'clothes','ceiling','books','refridgerator',
-                         'television','paper','towel','shower curtain',
-                         'box','whiteboard','person','night stand',
-                         'toilet','sink','lamp','bathtub','bag',
-                         'otherstructure','otherfurniture','otherprop')
+                         'clothes','ceiling','books','refridgerator','television',
+                         'paper','towel','shower curtain','box','whiteboard',
+                         'person','night stand','toilet','sink','lamp',
+                         'bathtub','bag','otherstructure','otherfurniture','otherprop')
 
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))

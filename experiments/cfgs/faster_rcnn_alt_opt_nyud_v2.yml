@@ -1,0 +1,8 @@
+EXP_DIR: pfr_ao_nyud_v2
+MODELS_DIR: /data/workspace/jg_pfr/models/nyud_v2
+RNG_SEED: 42
+TRAIN:
+  BG_THRESH_LO: 0.0
+  SCALES: [400,500,600,700]
+TEST:
+  HAS_RPN: True
