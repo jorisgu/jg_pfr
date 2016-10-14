@@ -46,6 +46,9 @@ def parse_args():
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to train on',
                         default='voc_2007_trainval', type=str)
+    parser.add_argument('--basic_db', dest='basic_imdb_name',
+                        help='dataset to train on without any set or date',
+                        default='pascal_voc', type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
@@ -70,6 +73,7 @@ def get_roidb(imdb_name, rpn_file=None):
 
 def get_solvers(net_name):
     # Faster R-CNN Alternating Optimization
+
     n = 'faster_rcnn_alt_opt'
     # Solver for each training stage
     solvers = [[net_name, n, 'stage1_rpn_solver60k80k.pt'],
@@ -78,11 +82,31 @@ def get_solvers(net_name):
                [net_name, n, 'stage2_fast_rcnn_solver30k40k.pt']]
     solvers = [os.path.join(cfg.MODELS_DIR, *s) for s in solvers]
     # Iterations for each training stage
-    max_iters = [80000, 40000, 80000, 40000]
-    # max_iters = [100, 100, 100, 100]
+    # max_iters = [90000, 40000, 80000, 40000]
+    max_iters = [50000, 30000, 50000, 40000]
+    #max_iters = [100, 100, 100, 100]
     # Test prototxt for the RPN
     rpn_test_prototxt = os.path.join(
         cfg.MODELS_DIR, net_name, n, 'rpn_test.pt')
+    return solvers, max_iters, rpn_test_prototxt
+
+def get_solvers2(net_name,dataset_name):
+    # Faster R-CNN Alternating Optimization
+
+    n = 'faster_rcnn_alt_opt'
+    # Solver for each training stage
+    solvers = [[dataset_name, net_name, n, 'stage1_rpn_solver60k80k.pt'],
+               [dataset_name, net_name, n, 'stage1_fast_rcnn_solver30k40k.pt'],
+               [dataset_name, net_name, n, 'stage2_rpn_solver60k80k.pt'],
+               [dataset_name, net_name, n, 'stage2_fast_rcnn_solver30k40k.pt']]
+    solvers = [os.path.join('/data/workspace/jg_pfr/models', *s) for s in solvers]
+    # Iterations for each training stage
+    # max_iters = [80000, 40000, 80000, 40000]
+    #max_iters = [100, 100, 100, 100]
+    max_iters = [50000, 30000, 50000, 40000]
+    # Test prototxt for the RPN
+    rpn_test_prototxt = os.path.join('/data/workspace/jg_pfr/models',dataset_name, net_name, n, 'rpn_test.pt')
+
     return solvers, max_iters, rpn_test_prototxt
 
 # ------------------------------------------------------------------------------
@@ -223,7 +247,7 @@ if __name__ == '__main__':
     # queue for communicated results between processes
     mp_queue = mp.Queue()
     # solves, iters, etc. for each training stage
-    solvers, max_iters, rpn_test_prototxt = get_solvers(args.net_name)
+    solvers, max_iters, rpn_test_prototxt = get_solvers2(args.net_name, args.basic_imdb_name )
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
     print 'Stage 1 RPN, init from ImageNet model'

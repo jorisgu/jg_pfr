@@ -43,6 +43,7 @@ class nyud(imdb):
 
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+        print "self.num_classes =", self.num_classes
         self._image_ext = '.png'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -50,12 +51,13 @@ class nyud(imdb):
         self._salt = str(uuid.uuid4())
         self._comp_id = 'comp4'
 
-        # PASCAL specific config options
+        # NYUD specific config options
         self.config = {'cleanup'     : True,
                        'use_salt'    : True,
                        'use_diff'    : False,
                        'matlab_eval' : False,
                        'rpn_file'    : None,
+                       'old_pascal_metric'    : True,
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
@@ -244,23 +246,23 @@ class nyud(imdb):
             else self._comp_id)
         return comp_id
 
-    def _get_voc_results_file_template(self):
+    def _get_nyud_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
-        filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
+        #filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
+        filename = 'det_' + self._image_set + '_{:s}.txt'
         path = os.path.join(
             self._devkit_path,
+            'data',
             'results',
-            'VOC' + self._year,
-            'Main',
             filename)
         return path
 
-    def _write_voc_results_file(self, all_boxes):
+    def _write_nyud_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
             print 'Writing {} VOC results file'.format(cls)
-            filename = self._get_voc_results_file_template().format(cls)
+            filename = self._get_nyud_results_file_template().format(cls)
             with open(filename, 'wt') as f:
                 for im_ind, index in enumerate(self.image_index):
                     dets = all_boxes[cls_ind][im_ind]
@@ -276,21 +278,20 @@ class nyud(imdb):
     def _do_python_eval(self, output_dir = 'output'):
         annopath = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
+            'data',
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
             # todo
-            'VOC' + self._year,
-            'ImageSets',
-            'Main',
+            'data',
+            'sets',
             self._image_set + '.txt')
         cachedir = os.path.join(self._devkit_path, 'annotations_cache')
         aps = []
         # todo
         # The PASCAL VOC metric changed in 2010
-        use_07_metric = True if int(self._year) < 2010 else False
+        use_07_metric = self.config['old_pascal_metric']
         # todo
         print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
         if not os.path.isdir(output_dir):
@@ -298,10 +299,10 @@ class nyud(imdb):
         for i, cls in enumerate(self._classes):
             if cls == '__background__':
                 continue
-            filename = self._get_voc_results_file_template().format(cls)
-            rec, prec, ap = voc_eval(
-                filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,
-                use_07_metric=use_07_metric)
+
+            filename = self._get_nyud_results_file_template().format(cls)
+            print filename
+            rec, prec, ap = voc_eval(filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
@@ -337,7 +338,7 @@ class nyud(imdb):
         status = subprocess.call(cmd, shell=True)
 
     def evaluate_detections(self, all_boxes, output_dir):
-        self._write_voc_results_file(all_boxes)
+        self._write_nyud_results_file(all_boxes)
         self._do_python_eval(output_dir)
         if self.config['matlab_eval']:
             self._do_matlab_eval(output_dir)
@@ -345,7 +346,7 @@ class nyud(imdb):
             for cls in self._classes:
                 if cls == '__background__':
                     continue
-                filename = self._get_voc_results_file_template().format(cls)
+                filename = self._get_nyud_results_file_template().format(cls)
                 os.remove(filename)
 
     def competition_mode(self, on):

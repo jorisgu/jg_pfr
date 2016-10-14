@@ -140,6 +140,7 @@ def voc_eval(detpath,
     splitlines = [x.strip().split(' ') for x in lines]
     image_ids = [x[0] for x in splitlines]
     confidence = np.array([float(x[1]) for x in splitlines])
+    print "Number of detections proposed = ", len(confidence)
     BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
 
     # sort by confidence

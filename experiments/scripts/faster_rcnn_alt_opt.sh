@@ -5,7 +5,7 @@
 #
 # Example:
 # ./experiments/scripts/faster_rcnn_alt_opt.sh 0 VGG_CNN_M_1024 pascal_voc \
-#   --set EXP_DIR foobar RNG_SEED 42 TRAIN.SCALES "[400, 500, 600, 700]"
+#   --set EXP_DIR foobar RNG_SEED 42 TRAIN.SCALES "[400,500,600,700]"
 
 
 set -x
@@ -25,15 +25,16 @@ EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 case $DATASET in
   pascal_voc)
-    TRAIN_IMDB="voc_2007_trainval"
+    #TRAIN_IMDB="voc_2007_trainval"
+    TRAIN_IMDB="voc_2007_fake"
     TEST_IMDB="voc_2007_test"
     PT_DIR="pascal_voc"
     ITERS=40000
     ;;
-  nyudv2)
-    TRAIN_IMDB="nyud_v2_train_rgb"
-    TEST_IMDB="nyud_v2__test_rgb"
-    PT_DIR="nyudv2"
+  nyud_v2)
+    TRAIN_IMDB="nyud_v2_trainval_rgb"
+    TEST_IMDB="nyud_v2_test_rgb"
+    PT_DIR="nyud_v2"
     ITERS=20000
     ;;
   coco)
@@ -46,7 +47,7 @@ case $DATASET in
     ;;
 esac
 
-LOG="experiments/logs/faster_rcnn_alt_opt_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
+LOG="experiments/logs/`date +'%Y-%m-%d_%H-%M-%S'`.pfr_ao_${NET}_${EXTRA_ARGS_SLUG}.txt"
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
@@ -54,6 +55,7 @@ time ./tools/train_faster_rcnn_alt_opt.py --gpu ${GPU_ID} \
   --net_name ${NET} \
   --weights data/imagenet_models/${NET}.v2.caffemodel \
   --imdb ${TRAIN_IMDB} \
+  --basic_db ${DATASET} \
   --cfg experiments/cfgs/faster_rcnn_alt_opt.yml \
   ${EXTRA_ARGS}
 
@@ -67,3 +69,6 @@ time ./tools/test_net.py --gpu ${GPU_ID} \
   --imdb ${TEST_IMDB} \
   --cfg experiments/cfgs/faster_rcnn_alt_opt.yml \
   ${EXTRA_ARGS}
+
+
+  #./tools/test_net.py --gpu 0 --def models/nyud_v2/VGG_CNN_M_1024/faster_rcnn_alt_opt/faster_rcnn_test.pt --net /data/workspace/jg_pfr/output/test_nyudv2_fake2/nyud_v2_val_rgb/VGG_CNN_M_1024_faster_rcnn_final.caffemodel --imdb nyud_v2_test_rgb --cfg experiments/cfgs/faster_rcnn_alt_opt.yml --set EXP_DIR test_nyudv2_fake2 RNG_SEED 42 TRAIN.SCALES "[400,500,600,700]"
