@@ -8,7 +8,7 @@ layer {
   python_param {
     module: 'roi_data_layer.layer'
     layer: 'RoIDataLayer'
-    param_str: "'num_classes': 12"
+    param_str: "'num_classes': 41"
   }
 }
 layer {
@@ -56,8 +56,8 @@ layer {
   type: "Convolution"
   bottom: "pool1"
   top: "conv2"
-  param { lr_mult: 0 decay_mult: 0 }
-  param { lr_mult: 0 decay_mult: 0 }
+  param { lr_mult: 1 }
+  param { lr_mult: 2 }
   convolution_param {
     num_output: 256
     pad: 1 kernel_size: 5 stride: 2
@@ -96,8 +96,8 @@ layer {
   type: "Convolution"
   bottom: "pool2"
   top: "conv3"
-  param { lr_mult: 0 decay_mult: 0 }
-  param { lr_mult: 0 decay_mult: 0 }
+  param { lr_mult: 1 }
+  param { lr_mult: 2 }
   convolution_param {
     num_output: 512
     pad: 1 kernel_size: 3
@@ -114,8 +114,8 @@ layer {
   type: "Convolution"
   bottom: "conv3"
   top: "conv4"
-  param { lr_mult: 0 decay_mult: 0 }
-  param { lr_mult: 0 decay_mult: 0 }
+  param { lr_mult: 1 }
+  param { lr_mult: 2 }
   convolution_param {
     num_output: 512
     pad: 1 kernel_size: 3
@@ -132,8 +132,8 @@ layer {
   type: "Convolution"
   bottom: "conv4"
   top: "conv5"
-  param { lr_mult: 0 decay_mult: 0 }
-  param { lr_mult: 0 decay_mult: 0 }
+  param { lr_mult: 1 }
+  param { lr_mult: 2 }
   convolution_param {
     num_output: 512
     pad: 1 kernel_size: 3

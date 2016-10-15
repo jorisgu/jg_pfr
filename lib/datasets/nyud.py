@@ -31,15 +31,9 @@ class nyud(imdb):
         # /home/jguerry/workspace/jg_pfr/data/nyud/nyud_v2/data
         self._data_path = os.path.join(self._devkit_path, 'data')
 
-        self._classes = ('__background__', # always index 0
-                         'wall', 'floor','cabinet','bed','chair',
-                         'sofa','table','door','window','bookshelf',
-                         'picture','counter','blinds','desk','shelves',
-                         'curtain','dresser','pillow','mirror','floor mat',
-                         'clothes','ceiling','books','refridgerator','television',
-                         'paper','towel','shower curtain','box','whiteboard',
-                         'person','night stand','toilet','sink','lamp',
-                         'bathtub','bag','otherstructure','otherfurniture','otherprop')
+        # __background__ always index 0
+        self._classes = ('__background__', 'bag', 'bicycle', 'car', 'chair', 'computer',
+                        'keyboard', 'person', 'telephone', 'monitor', 'table', 'shelves')
 
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
