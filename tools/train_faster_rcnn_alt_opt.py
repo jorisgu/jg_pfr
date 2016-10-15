@@ -102,8 +102,8 @@ def get_solvers2(net_name,dataset_name):
     solvers = [os.path.join('/data/workspace/jg_pfr/models', *s) for s in solvers]
     # Iterations for each training stage
     # max_iters = [80000, 40000, 80000, 40000]
-    #max_iters = [100, 100, 100, 100]
-    max_iters = [50000, 30000, 50000, 40000]
+    max_iters = [100, 100, 100, 100]
+    #max_iters = [50000, 30000, 50000, 40000]
     # Test prototxt for the RPN
     rpn_test_prototxt = os.path.join('/data/workspace/jg_pfr/models',dataset_name, net_name, n, 'rpn_test.pt')
 
