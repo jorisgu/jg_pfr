@@ -231,12 +231,13 @@ class pascal_voc(imdb):
     def _get_voc_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
         filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
-        path = os.path.join(
-            self._devkit_path,
-            'results',
-            'VOC' + self._year,
-            'Main',
-            filename)
+        #path = os.path.join(
+        #    self._devkit_path,
+        #    'results',
+        #    'VOC' + self._year,
+        #    'Main',
+        #    filename)
+        path = os.path.join(self.output_dir,'results',filename)
         return path
 
     def _write_voc_results_file(self, all_boxes):
@@ -269,13 +270,14 @@ class pascal_voc(imdb):
             'ImageSets',
             'Main',
             self._image_set + '.txt')
-        cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+        cachedir = os.path.join(self.output_dir,'results')
+        #cachedir = os.path.join(self._devkit_path, 'annotations_cache')
         aps = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
         print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
+        if not os.path.isdir(cachedir):
+            os.mkdir(cachedir)
         for i, cls in enumerate(self._classes):
             if cls == '__background__':
                 continue
@@ -285,7 +287,7 @@ class pascal_voc(imdb):
                 use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
-            with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
+            with open(os.path.join(cachedir, cls + '_pr.pkl'), 'w') as f:
                 cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
         print('~~~~~~~~')

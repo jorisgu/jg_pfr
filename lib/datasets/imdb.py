@@ -26,7 +26,7 @@ class imdb(object):
         self._roidb_handler = self.default_roidb
         # Use this dict for storing dataset specific config options
         self.config = {}
-
+        self.output_dir = ''
     @property
     def name(self):
         return self._name
