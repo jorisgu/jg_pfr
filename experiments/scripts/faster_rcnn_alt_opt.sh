@@ -31,9 +31,15 @@ case $DATASET in
     PT_DIR="pascal_voc"
     ITERS=40000
     ;;
-  nyud_v2)
+  nyud_v2_rgb)
     TRAIN_IMDB="nyud_v2_trainval_rgb"
     TEST_IMDB="nyud_v2_test_rgb"
+    PT_DIR="nyud_v2"
+    ITERS=20000
+    ;;
+  nyud_v2)
+    TRAIN_IMDB="nyud_v2_trainval_d_raw_normal_16bits"
+    TEST_IMDB="nyud_v2_test_d_raw_normal_16bits"
     PT_DIR="nyud_v2"
     ITERS=20000
     ;;
