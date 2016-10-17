@@ -32,9 +32,49 @@ class nyud(imdb):
         self._data_path = os.path.join(self._devkit_path, 'data')
 
         # __background__ always index 0
-        self._classes = ('__background__', 'bag', 'bicycle', 'car', 'chair', 'computer',
-                        'keyboard', 'person', 'telephone', 'monitor', 'table', 'shelves')
-
+        #self._classes = ('__background__', 'bag', 'bicycle', 'car', 'chair', 'computer',
+        #                'keyboard', 'person', 'telephone', 'monitor', 'table', 'shelves')
+        self._classes = (   '__background__',
+                            'wall',
+                            'floor',
+                            'cabinet',
+                            'bed',
+                            'chair',
+                            'sofa',
+                            'table',
+                            'door',
+                            'window',
+                            'bookshelf',
+                            'picture',
+                            'counter',
+                            'blinds',
+                            'desk',
+                            'shelves',
+                            'curtain',
+                            'dresser',
+                            'pillow',
+                            'mirror',
+                            'floor mat',
+                            'clothes',
+                            'ceiling',
+                            'books',
+                            'refridgerator',
+                            'television',
+                            'paper',
+                            'towel',
+                            'shower curtain',
+                            'box',
+                            'whiteboard',
+                            'person',
+                            'night stand',
+                            'toilet',
+                            'sink',
+                            'lamp',
+                            'bathtub',
+                            'bag',
+                            'otherstructure',
+                            'otherfurniture',
+                            'otherprop')
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         print "self.num_classes =", self.num_classes

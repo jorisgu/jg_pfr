@@ -1,4 +1,4 @@
-
+MODELS_DIR: /home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta
 RNG_SEED: 42
 TEST:
   HAS_RPN: True

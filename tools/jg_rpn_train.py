@@ -56,6 +56,8 @@ def get_roidb(imdb_name, rpn_file=None):
     if rpn_file is not None:
         imdb.config['rpn_file'] = rpn_file
     roidb = get_training_roidb(imdb)
+    num_classes = roidb[0]['gt_overlaps'].shape[1]
+    print "############ num class in get_roidb jg rpn train :", num_classes
     return roidb, imdb
 
 
