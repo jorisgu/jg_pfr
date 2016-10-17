@@ -148,9 +148,9 @@ class nyud(imdb):
 
     def rpn_roidb(self):
         if self._image_set != 'test':
-            gt_roidb = self.gt_roidb()
-            rpn_roidb = self._load_rpn_roidb(gt_roidb)
-            roidb = imdb.merge_roidbs(gt_roidb, rpn_roidb)
+            gtRoidb = self.gt_roidb()
+            rpnRoidb = self._load_rpn_roidb(gtRoidb)
+            roidb = imdb.merge_roidbs(gtRoidb, rpnRoidb)
         else:
             roidb = self._load_rpn_roidb(None)
 

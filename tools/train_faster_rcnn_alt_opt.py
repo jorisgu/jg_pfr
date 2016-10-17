@@ -252,7 +252,7 @@ if __name__ == '__main__':
     solvers, max_iters, rpn_test_prototxt = get_solvers2(args.net_name, args.basic_imdb_name )
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 1 RPN, init from ImageNet model'
+    print 'Stage 1.1 RPN, init from ImageNet model'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     cfg.TRAIN.SNAPSHOT_INFIX = 'stage1'
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     p.join()
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 1 RPN, generate proposals'
+    print 'Stage 1.2 RPN, generate proposals'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     mp_kwargs = dict(
@@ -284,7 +284,7 @@ if __name__ == '__main__':
     p.join()
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 1 Fast R-CNN using RPN proposals, init from ImageNet model'
+    print 'Stage 1.3 Fast R-CNN using RPN proposals, init from ImageNet model'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     cfg.TRAIN.SNAPSHOT_INFIX = 'stage1'
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     p.join()
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 2 RPN, init from stage 1 Fast R-CNN model'
+    print 'Stage 2.1 RPN, init from stage 1 Fast R-CNN model'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     cfg.TRAIN.SNAPSHOT_INFIX = 'stage2'
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     p.join()
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 2 RPN, generate proposals'
+    print 'Stage 2.2 RPN, generate proposals'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     mp_kwargs = dict(
@@ -334,7 +334,7 @@ if __name__ == '__main__':
     p.join()
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Stage 2 Fast R-CNN, init from stage 2 RPN R-CNN model'
+    print 'Stage 2.3 Fast R-CNN, init from stage 2 RPN R-CNN model'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 
     cfg.TRAIN.SNAPSHOT_INFIX = 'stage2'

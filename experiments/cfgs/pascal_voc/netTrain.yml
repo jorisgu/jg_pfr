@@ -1,0 +1,6 @@
+RNG_SEED: 42
+TRAIN:
+  HAS_RPN: False
+  PROPOSAL_METHOD: 'rpn'   # use pre-computed RPN proposals instead
+  SNAPSHOT_INFIX: stage1
+  IMS_PER_BATCH: 2
