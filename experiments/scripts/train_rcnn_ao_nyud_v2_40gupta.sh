@@ -120,7 +120,7 @@ OUTPUT_FILE_NAME_22="22_rpn_proposals.pkl"
 
 
 # Stage 2.3 Fast R-CNN, init from stage 2 RPN R-CNN model
-PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/stage1_fast_rcnn_solver30k40k.pt"
+PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/stage2_fast_rcnn_solver30k40k.pt"
 PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_21}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/netTrain.yml"
 PATH_PROPOSAL="${EXP_DIR}${OUTPUT_FILE_NAME_22}"
