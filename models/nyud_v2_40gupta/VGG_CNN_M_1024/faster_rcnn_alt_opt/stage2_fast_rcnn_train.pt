@@ -1,4 +1,4 @@
-name: "VGG_CNN_M_1024"
+name: "VGG_CNN_M_1024 stage RCNN"
 layer {
   name: 'data'
   type: 'Python'
@@ -132,6 +132,7 @@ layer {
 }
 layer {
   name: "conv5"
+  propagate_down: false
   type: "Convolution"
   bottom: "conv4"
   top: "conv5"

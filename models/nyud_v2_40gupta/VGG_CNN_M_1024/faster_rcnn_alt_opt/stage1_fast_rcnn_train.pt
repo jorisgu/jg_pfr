@@ -16,6 +16,7 @@ layer {
 }
 layer {
   name: "conv1"
+  propagate_down: false
   type: "Convolution"
   bottom: "data"
   top: "conv1"
@@ -279,6 +280,7 @@ layer {
 
 layer {
   name: "rpn_conv/3x3"
+  propagate_down: false
   type: "Convolution"
   bottom: "conv5"
   top: "rpn/output"
@@ -299,6 +301,7 @@ layer {
 }
 layer {
   name: "rpn_cls_score"
+  propagate_down: false
   type: "Convolution"
   bottom: "rpn/output"
   top: "rpn_cls_score"
@@ -313,6 +316,7 @@ layer {
 }
 layer {
   name: "rpn_bbox_pred"
+  propagate_down: false
   type: "Convolution"
   bottom: "rpn/output"
   top: "rpn_bbox_pred"

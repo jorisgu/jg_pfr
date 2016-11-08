@@ -1,4 +1,4 @@
-name: "VGG_CNN_M_1024"
+name: "VGG_CNN_M_1024 stage2 RPN"
 layer {
   name: 'input-data'
   type: 'Python'
@@ -129,6 +129,7 @@ layer {
 }
 layer {
   name: "conv5"
+  propagate_down: false
   type: "Convolution"
   bottom: "conv4"
   top: "conv5"
@@ -270,6 +271,7 @@ layer {
 }
 layer {
   name: "fc7"
+  propagate_down: false
   type: "InnerProduct"
   bottom: "fc6"
   top: "fc7"
@@ -280,6 +282,7 @@ layer {
   }
 }
 layer {
+  propagate_down: false
   name: "silence_fc7"
   type: "Silence"
   bottom: "fc7"
