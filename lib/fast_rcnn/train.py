@@ -156,3 +156,12 @@ def train_net(solver_prototxt, roidb, output_dir,
     model_paths = sw.train_model(max_iters)
     print 'done solving'
     return model_paths
+
+def load_net(solver_prototxt, roidb, output_dir,
+              pretrained_model=None, max_iters=40000):
+    """Train a Fast R-CNN network."""
+
+    roidb = filter_roidb(roidb)
+    sw = SolverWrapper(solver_prototxt, roidb, output_dir,
+                       pretrained_model=pretrained_model)
+    return sw

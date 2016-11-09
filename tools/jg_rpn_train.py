@@ -82,13 +82,6 @@ if __name__ == '__main__':
         cfg_from_file(args.path_cfg)
     cfg.GPU_ID = args.gpu_id
 
-
-    #cfg.TRAIN.HAS_RPN = True
-    #cfg.TRAIN.BBOX_REG = False  # applies only to Fast R-CNN bbox regression
-    #cfg.TRAIN.PROPOSAL_METHOD = 'gt'
-    #cfg.TRAIN.IMS_PER_BATCH = 1
-    #cfg.TRAIN.SNAPSHOT_INFIX = 'stage1'
-
     print 'Init model: {}'.format(args.path_net_weights)
     print('Using config:')
     pprint.pprint(cfg)
