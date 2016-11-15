@@ -75,6 +75,3 @@ time ./tools/test_net.py --gpu ${GPU_ID} \
   --imdb ${TEST_IMDB} \
   --cfg experiments/cfgs/faster_rcnn_alt_opt.yml \
   ${EXTRA_ARGS}
-
-
-  #./tools/test_net.py --gpu 0 --def models/nyud_v2/VGG_CNN_M_1024/faster_rcnn_alt_opt/faster_rcnn_test.pt --net /data/workspace/jg_pfr/output/test_nyudv2_fake2/nyud_v2_val_rgb/VGG_CNN_M_1024_faster_rcnn_final.caffemodel --imdb nyud_v2_test_rgb --cfg experiments/cfgs/faster_rcnn_alt_opt.yml --set EXP_DIR test_nyudv2_fake2 RNG_SEED 42 TRAIN.SCALES "[400,500,600,700]"
