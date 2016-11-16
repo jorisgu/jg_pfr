@@ -91,7 +91,7 @@ class nyud(imdb):
                        'use_diff'    : False,
                        'matlab_eval' : False,
                        'rpn_file'    : None,
-                       'old_pascal_metric'    : False,
+                       'old_pascal_metric'    : True,
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
@@ -336,7 +336,7 @@ class nyud(imdb):
                 continue
 
             filename = self._get_nyud_results_file_template().format(cls)
-            rec, prec, ap = voc_eval(filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,use_07_metric=use_07_metric)
+            rec, prec, ap = voc_eval(filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.7,use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
