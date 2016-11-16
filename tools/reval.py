@@ -24,6 +24,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Re-evaluate results')
     parser.add_argument('output_dir', nargs=1, help='results directory',
                         type=str)
+    parser.add_argument('--detections', dest='detections',
+                        help='computed detections file',
+                        default='detections.pkl', type=str)
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to re-evaluate',
                         default='voc_2007_test', type=str)
@@ -46,7 +49,7 @@ def from_dets(imdb_name, output_dir, args):
     imdb = get_imdb(imdb_name)
     imdb.competition_mode(args.comp_mode)
     imdb.config['matlab_eval'] = args.matlab_eval
-    with open(os.path.join(output_dir, 'detections.pkl'), 'rb') as f:
+    with open(os.path.join(output_dir, args.detections), 'rb') as f:
         dets = cPickle.load(f)
 
     if args.apply_nms:
