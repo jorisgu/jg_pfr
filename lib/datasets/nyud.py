@@ -295,8 +295,9 @@ class nyud(imdb):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
-            print 'Writing {} VOC results file'.format(cls)
+            print '[{}] results file written to :'.format(cls)
             filename = self._get_nyud_results_file_template().format(cls)
+            print '   {}'.format(filename)
             with open(filename, 'wt') as f:
                 for im_ind, index in enumerate(self.image_index):
                     dets = all_boxes[cls_ind][im_ind]
@@ -335,7 +336,6 @@ class nyud(imdb):
                 continue
 
             filename = self._get_nyud_results_file_template().format(cls)
-            print filename
             rec, prec, ap = voc_eval(filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
@@ -372,11 +372,39 @@ class nyud(imdb):
         status = subprocess.call(cmd, shell=True)
 
     def evaluate_detections(self, all_boxes, output_dir):
+        print ""
+        print ""
+        print ""
+        print "#############################################################"
+        print "WRITING RESULTS FILES"
+        print ""
         self._write_nyud_results_file(all_boxes)
+
+        print ""
+        print ""
+        print ""
+        print "#############################################################"
+        print "PYTHON EVALUATION"
+        print ""
         self._do_python_eval(output_dir)
+
         if self.config['matlab_eval']:
+            print ""
+            print ""
+            print ""
+            print "#############################################################"
+            print "MATLAB EVALUATION"
+            print ""
             self._do_matlab_eval(output_dir)
+
+
         if self.config['cleanup']:
+            print ""
+            print ""
+            print ""
+            print "#############################################################"
+            print "CLEANING"
+            print ""
             for cls in self._classes:
                 if cls == '__background__':
                     continue

@@ -108,8 +108,7 @@ def voc_eval(detpath,
         for i, imagename in enumerate(imagenames):
             recs[imagename] = parse_rec(annopath.format(imagename))
             if i % 100 == 0:
-                print 'Reading annotation for {:d}/{:d}'.format(
-                    i + 1, len(imagenames))
+                print 'Reading annotation for {:d}/{:d}'.format(i + 1, len(imagenames))
         # save
         print 'Saving cached annotations to {:s}'.format(cachefile)
         with open(cachefile, 'w') as f:
@@ -140,7 +139,7 @@ def voc_eval(detpath,
     splitlines = [x.strip().split(' ') for x in lines]
     image_ids = [x[0] for x in splitlines]
     confidence = np.array([float(x[1]) for x in splitlines])
-    print "Number of detections proposed = ", len(confidence)
+    print len(confidence),"detections proposed for", classname
 
     if len(confidence) == 0:
         return 0, 0, 0
