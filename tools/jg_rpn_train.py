@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     roidb, imdb = get_roidb(args.imdb_name)
     print 'roidb len: {}'.format(len(roidb))
-    output_dir = get_output_dir(imdb)
+    #output_dir = get_output_dir(imdb)
     print 'Output will be saved to `{:s}`'.format(args.output_dir)
 
     model_paths = train_net(args.path_net_proto, roidb, args.output_dir,

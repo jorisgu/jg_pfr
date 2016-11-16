@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     # Load RPN and configure output directory
     rpn_net = caffe.Net(args.path_net_proto, args.path_net_weights, caffe.TEST)
-    output_dir = get_output_dir(imdb)
+    #output_dir = get_output_dir(imdb)
     print 'Output will be saved to `{:s}`'.format(args.output_dir)
     # Generate proposals on the imdb
     rpn_proposals = imdb_proposals(rpn_net, imdb)
