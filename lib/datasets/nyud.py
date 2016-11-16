@@ -83,15 +83,15 @@ class nyud(imdb):
         # Default to roidb handler
         self._roidb_handler = self.selective_search_roidb
         self._salt = str(uuid.uuid4())
-        self._comp_id = 'comp4'
+        self._comp_id = ''
 
         # NYUD specific config options
         self.config = {'cleanup'     : True,
-                       'use_salt'    : True,
+                       'use_salt'    : False,
                        'use_diff'    : False,
                        'matlab_eval' : False,
                        'rpn_file'    : None,
-                       'old_pascal_metric'    : True,
+                       'old_pascal_metric'    : False,
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
