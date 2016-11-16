@@ -199,7 +199,7 @@ __C.MODELS_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'models', 'pascal_voc'))
 __C.MATLAB = 'matlab'
 
 # Place outputs under an experiments directory
-__C.EXP_DIR = 'default'
+__C.EXP_DIR = 'default_exp_dir'
 
 # Use GPU implementation of non-maximum suppression
 __C.USE_GPU_NMS = True
@@ -219,7 +219,8 @@ def get_output_dir(imdb, net=None):
     if net is not None:
         outdir = osp.join(outdir, net.name)
     if not os.path.exists(outdir):
-        os.makedirs(outdir)
+        raise NameError('Error in config.py : should not create a folder !')
+        #os.makedirs(outdir)
     return outdir
 
 def _merge_a_into_b(a, b):
