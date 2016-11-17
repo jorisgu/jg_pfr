@@ -40,7 +40,16 @@ for year in ['v1', 'v2']:
                         'd_raw_histeqFront_16bits',
                         'd_raw_histeqRandom_8bits',
                         'd_raw_histeqRandom_16bits',
-                        'rgb']:
+                        'rgb_raw_8bits',
+                        'rgb_i_10_8bits',
+                        'rgb_i_20_8bits',
+                        'rgb_i_30_8bits',
+                        'rgb_i_40_8bits',
+                        'rgb_i_50_8bits',
+                        'rgb_i_60_8bits',
+                        'rgb_i_70_8bits',
+                        'rgb_i_80_8bits',
+                        'rgb_i_90_8bits']:
             name = 'nyud_{}_{}_{}'.format(year, split, chanel)
             __sets[name] = (lambda split=split, year=year, chanel=chanel: nyud(split, year, chanel))
 
