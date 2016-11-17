@@ -34,6 +34,12 @@ for year in ['v1', 'v2']:
                         'd_raw_HHA_focus_8bits',
                         'd_raw_jet_focus_8bits',
                         'd_raw_cubehelix_focus_8bits',
+                        'd_raw_histeqBack_8bits',
+                        'd_raw_histeqBack_16bits',
+                        'd_raw_histeqFront_8bits',
+                        'd_raw_histeqFront_16bits',
+                        'd_raw_histeqRandom_8bits',
+                        'd_raw_histeqRandom_16bits',
                         'rgb']:
             name = 'nyud_{}_{}_{}'.format(year, split, chanel)
             __sets[name] = (lambda split=split, year=year, chanel=chanel: nyud(split, year, chanel))
