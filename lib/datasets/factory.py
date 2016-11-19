@@ -17,13 +17,13 @@ import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
 for year in ['2007', '2012']:
-    for split in ['train', 'val', 'trainval', 'test','fake', 'trainvalGupta','testGupta']:
+    for split in ['train', 'val', 'trainval', 'test','fake']:
         name = 'voc_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year: pascal_voc(split, year))
 
 # Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
-    for split in ['train', 'val', 'trainval', 'test']:
+    for split in ['train', 'val', 'trainval', 'test', 'trainvalGupta','testGupta']:
         for chanel in [ 'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
                         'd_raw_normal_8bits',
