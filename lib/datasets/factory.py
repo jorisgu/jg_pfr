@@ -23,7 +23,7 @@ for year in ['2007', '2012']:
 
 # Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
-    for split in ['train', 'val', 'trainval', 'test', 'trainvalGupta','testGupta']:
+    for split in ['train', 'val', 'trainval', 'test', 'trainGupta','valGupta','trainvalGupta','testGupta']:
         for chanel in [ 'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
                         'd_raw_normal_8bits',
