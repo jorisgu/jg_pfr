@@ -23,7 +23,31 @@ for year in ['2007', '2012']:
 
 # Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
-    for split in ['train', 'val', 'trainval', 'test', 'trainGupta','valGupta','trainvalGupta','testGupta']:
+    for split in [  'test',
+                    'train',
+                    'val',
+                    'trainval',
+
+                    'test_i_50_10',
+                    'train_i_50_10',
+                    'val_i_50_10',
+                    'trainval_i_50_10',
+
+                    'test_i_100_60',
+                    'train_i_100_60',
+                    'val_i_100_60',
+                    'trainval_i_100_60',
+
+                    'test_i_all',
+                    'train_i_all',
+                    'val_i_all',
+                    'trainval_i_all',
+
+                    'testGupta',
+                    'trainGupta',
+                    'valGupta',
+                    'trainvalGupta']:
+
         for chanel in [ 'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
                         'd_raw_normal_8bits',
@@ -49,7 +73,10 @@ for year in ['v1', 'v2']:
                         'rgb_i_60_8bits',
                         'rgb_i_70_8bits',
                         'rgb_i_80_8bits',
-                        'rgb_i_90_8bits']:
+                        'rgb_i_90_8bits',
+                        'rgb_iRange_100_60_8bits',
+                        'rgb_iRange_50_10_8bits',
+                        'rgb_iAll_8bits']:
             name = 'nyud_{}_{}_{}'.format(year, split, chanel)
             __sets[name] = (lambda split=split, year=year, chanel=chanel: nyud(split, year, chanel))
 
