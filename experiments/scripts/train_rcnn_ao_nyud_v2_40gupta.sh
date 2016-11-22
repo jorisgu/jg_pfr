@@ -155,9 +155,6 @@ OUTPUT_FILE_NAME_31="31_net_outputs.pkl"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_31}
 
-
-
-
 # stage 3.2 Eval test from net test outputs
 mkdir -p "${EXP_DIR}results"
 

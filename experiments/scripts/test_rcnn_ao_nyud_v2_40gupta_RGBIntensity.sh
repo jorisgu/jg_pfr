@@ -34,7 +34,7 @@ OUTPUT_FILE_NAME="outputs.pkl"
 ./tools/jg_net_generate.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
-  --path_net_weights ${PATH_BINARY} \
+  --path_net_weights output/${PATH_BINARY} \
   --imdb_name ${NAME_TEST_IMDB} \
   --path_cfg ${PATH_CONFIG_FILE} \
   --output_dir ${EXP_DIR}\
