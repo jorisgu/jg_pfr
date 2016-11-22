@@ -23,7 +23,9 @@ for year in ['2007', '2012']:
 
 # Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
-    for split in [  'test',
+    for split in [  'fake',
+    
+                    'test',
                     'train',
                     'val',
                     'trainval',

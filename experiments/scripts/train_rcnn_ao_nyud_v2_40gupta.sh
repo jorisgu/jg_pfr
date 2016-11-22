@@ -155,6 +155,15 @@ OUTPUT_FILE_NAME_31="31_net_outputs.pkl"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_31}
 
+  #./tools/jg_net_generate.py \
+  # --gpu_id 0 \
+  #  --path_net_proto models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/faster_rcnn_test.pt \
+  #  --path_net_weights output/ao_rgb_raw_8bits_nyud_v2_40gupta_2016-11-22_13-36-28/23_net.caffemodel \
+  #  --imdb_name nyud_v2_fake_rgb_raw_8bits \
+  #  --path_cfg experiments/cfgs/nyud_v2_40gupta/netTest.yml \
+  #  --output_dir output/ao_rgb_raw_8bits_nyud_v2_40gupta_2016-11-22_13-36-28/ \
+  #  --output_file_name 31_net_outputs.pkl
+
 # stage 3.2 Eval test from net test outputs
 mkdir -p "${EXP_DIR}results"
 
@@ -162,3 +171,8 @@ mkdir -p "${EXP_DIR}results"
   --imdb_name ${NAME_TEST_IMDB} \
   --output_dir ${EXP_DIR}\
   --input_file_name ${OUTPUT_FILE_NAME_31}
+
+  #./tools/jg_net_evaluate.py \
+  #  --imdb_name nyud_v2_fake_rgb_raw_8bits \
+  #  --output_dir output/ao_rgb_raw_8bits_nyud_v2_40gupta_2016-11-22_13-36-28/ \
+  #  --input_file_name 31_net_outputs.pkl
