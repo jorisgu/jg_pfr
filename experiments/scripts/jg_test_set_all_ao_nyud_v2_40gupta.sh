@@ -1,11 +1,8 @@
 #!/bin/bash
 # Example:
-# ./experiments/scripts/thescript.sh network set binary_path imdb_test_name
+# ./experiments/scripts/thescript.sh folder imdb
  #./experiments/scripts/thescript.sh
- #call      :i60
- #on        :i40
- #weights   :/home/jogue/workspace/jg_pfr/output/ao_rgb_i_60_8bits_nyud_v2_40gupta_2016-11-20_18-08-45/23_net.caffemodel
- #data      :nyud_v2_test_rgb_i_30_8bits
+
 
 
 set -x
@@ -13,9 +10,6 @@ set -e
 
 export PYTHONUNBUFFERED="True"
 
-
-GPU_ID=0
-NAME_DATASET="nyud_v2_40gupta"
 CANAL=$1
 NAME_TEST_IMDB=$2
 
