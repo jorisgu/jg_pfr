@@ -322,7 +322,7 @@ class nyud(imdb):
             'data',
             'sets',
             self._image_set + '.txt')
-        cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+        cachedir = os.path.join(self._devkit_path, 'data','Annotations_rcnn_cache',self._name)
         aps = []
         # todo
         # The PASCAL VOC metric changed in 2010
