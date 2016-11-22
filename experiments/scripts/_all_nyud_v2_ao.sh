@@ -43,6 +43,6 @@
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_i_90_8bits nyud_v2_trainval_rgb_i_90_8bits nyud_v2_test_rgb_i_90_8bits 100000
 
 ############################ rgb mixed ############################
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iAll_8bits nyud_v2_trainval_i_all_rgb_iAll_8bits nyud_v2_test_i_all_rgb_iAll_8bits 20
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iRange_100_60_8bits nyud_v2_trainval_i_100_60_rgb_iRange_100_60_8bits nyud_v2_test_i_100_60_rgb_iRange_100_60_8bits 20
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iRange_50_10_8bits nyud_v2_trainval_i_50_10_rgb_iRange_50_10_8bits nyud_v2_test_i_50_10_rgb_iRange_50_10_8bits 20
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iAll_8bits nyud_v2_trainval_i_all_rgb_iAll_8bits nyud_v2_test_i_all_rgb_iAll_8bits 400000
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iRange_100_60_8bits nyud_v2_trainval_i_100_60_rgb_iRange_100_60_8bits nyud_v2_test_i_100_60_rgb_iRange_100_60_8bits 200000
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_iRange_50_10_8bits nyud_v2_trainval_i_50_10_rgb_iRange_50_10_8bits nyud_v2_test_i_50_10_rgb_iRange_50_10_8bits 200000

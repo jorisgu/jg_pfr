@@ -43,7 +43,7 @@ OUTPUT_FILE_NAME="outputs.pkl"
 
 
 
-# stage 3.2 Eval test from net test outputs
+# stage 1.2 Eval test from net test outputs
 mkdir -p "${EXP_DIR}results"
 
 ./tools/jg_net_evaluate.py \
