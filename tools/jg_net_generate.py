@@ -130,5 +130,6 @@ if __name__ == '__main__':
                       _t['misc'].average_time)
 
     det_file = os.path.join(args.output_dir, args.output_file_name)
+    print "jg_net_generate, dump all boxes in :", det_file
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)

@@ -280,13 +280,12 @@ class nyud(imdb):
             else self._comp_id)
         return comp_id
 
-    def _get_nyud_results_file_template(self):
+    def _get_nyud_results_file_template(self,output_dir):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
         #filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
         filename = 'det_' + self._image_set + '_{:s}.txt'
         path = os.path.join(
-            self._devkit_path,
-            'data',
+            output_dir,
             'results',
             filename)
         return path
@@ -296,7 +295,7 @@ class nyud(imdb):
             if cls == '__background__':
                 continue
             print '[{}] results file written to :'.format(cls)
-            filename = self._get_nyud_results_file_template().format(cls)
+            filename = self._get_nyud_results_file_template(output_dir).format(cls)
             print '   {}'.format(filename)
             with open(filename, 'wt') as f:
                 for im_ind, index in enumerate(self.image_index):
@@ -310,7 +309,7 @@ class nyud(imdb):
                                        dets[k, 0] + 1, dets[k, 1] + 1,
                                        dets[k, 2] + 1, dets[k, 3] + 1))
 
-    def _do_python_eval(self, output_dir = 'output'):
+    def _do_python_eval(self, output_dir):
         annopath = os.path.join(
             self._devkit_path,
             'data',
@@ -335,7 +334,7 @@ class nyud(imdb):
             if cls == '__background__':
                 continue
 
-            filename = self._get_nyud_results_file_template().format(cls)
+            filename = self._get_nyud_results_file_template(output_dir).format(cls)
             print "Processing", filename
             rec, prec, ap = voc_eval(filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,use_07_metric=use_07_metric)
             aps += [ap]
@@ -409,7 +408,7 @@ class nyud(imdb):
             for cls in self._classes:
                 if cls == '__background__':
                     continue
-                filename = self._get_nyud_results_file_template().format(cls)
+                filename = self._get_nyud_results_file_template(output_dir).format(cls)
                 os.remove(filename)
 
     def competition_mode(self, on):

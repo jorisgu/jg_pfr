@@ -21,7 +21,7 @@ exec &> >(tee -a "$LOG_FILE")
 # stage 1.1 Compute test (no evaluation) : generate test outputs
 PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/faster_rcnn_test.pt"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/netTest.yml"
-OUTPUT_FILE_NAME="outputs.pkl"
+OUTPUT_FILE_NAME="bb_generation.pkl"
 
 ./tools/jg_net_generate.py \
   --gpu_id 0 \
@@ -29,7 +29,7 @@ OUTPUT_FILE_NAME="outputs.pkl"
   --path_net_weights output/${CANAL}/23_net.caffemodel \
   --imdb_name ${NAME_TEST_IMDB} \
   --path_cfg ${PATH_CONFIG_FILE} \
-  --output_dir ${EXP_DIR}\
+  --output_dir ${EXP_DIR} \
   --output_file_name ${OUTPUT_FILE_NAME}
 
 

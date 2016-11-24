@@ -27,9 +27,9 @@
 #./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqRandom_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqRandom_8bits
 #./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqBack_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqBack_8bits
 #./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqFront_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqFront_8bits
-./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqRandom_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqRandom_16bits
-./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqBack_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqBack_16bits
-./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqFront_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqFront_16bits
+#./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqRandom_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqRandom_16bits
+#./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqBack_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqBack_16bits
+#./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_histeqFront_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_histeqFront_16bits
 
 ############################ rgb variable I ############################
 #./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_rgb_i_10_8bits_nyud_v2_40gupta nyud_v2_test_rgb_i_10_8bits
