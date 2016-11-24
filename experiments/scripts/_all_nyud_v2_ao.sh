@@ -54,4 +54,4 @@
 
 
 ############## REPETITION
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 repetition_rgb_raw_8bits nyud_v2_train_rgb_raw_8bits nyud_v2_val_rgb_raw_8bits 500
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 repetition_rgb_raw_8bits nyud_v2_trainval_rgb_raw_8bits nyud_v2_test_rgb_raw_8bits 100000

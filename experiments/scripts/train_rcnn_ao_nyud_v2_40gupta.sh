@@ -18,8 +18,7 @@ NAME_TRAIN_IMDB=$3
 NAME_TEST_IMDB=$4
 MAX_ITERS=$5
 
-#EXP_DIR="output/${KEY}_${NAME_DATASET}_`date +'%Y-%m-%d_%H-%M-%S'`/"
-EXP_DIR="output/${KEY}_${NAME_DATASET}/"
+EXP_DIR="output/${KEY}_${NAME_DATASET}_`date +'%Y-%m-%d_%H-%M-%S'`/"
 mkdir -p ${EXP_DIR}
 LOG_FILE="${EXP_DIR}log.txt"
 exec &> >(tee -a "$LOG_FILE")
@@ -30,7 +29,7 @@ PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/stage1_rpn
 PATH_BINARY="data/imagenet_models/VGG_CNN_M_1024.v2.caffemodel"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/rpnTrain.yml"
 OUTPUT_FILE_NAME_11="11_rpn.caffemodel"
-:'
+
 ./tools/jg_rpn_train.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -40,7 +39,7 @@ OUTPUT_FILE_NAME_11="11_rpn.caffemodel"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_11}\
   --max_iters ${MAX_ITERS}
-'
+
 
 
 
@@ -49,7 +48,7 @@ PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/rpn_test.p
 PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_11}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/rpnGenerate.yml"
 OUTPUT_FILE_NAME_12="12_rpn_proposals.pkl"
-:'
+
 ./tools/jg_rpn_generate.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -58,7 +57,7 @@ OUTPUT_FILE_NAME_12="12_rpn_proposals.pkl"
   --path_cfg ${PATH_CONFIG_FILE} \
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_12}
-'
+
 
 
 
@@ -68,7 +67,7 @@ PATH_BINARY="data/imagenet_models/VGG_CNN_M_1024.v2.caffemodel"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/netTrain.yml"
 PATH_PROPOSAL="${EXP_DIR}${OUTPUT_FILE_NAME_12}"
 OUTPUT_FILE_NAME_13="13_net.caffemodel"
-:'
+
 ./tools/jg_net_train.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -79,7 +78,7 @@ OUTPUT_FILE_NAME_13="13_net.caffemodel"
   --output_file_name ${OUTPUT_FILE_NAME_13}\
   --path_proposal ${PATH_PROPOSAL}\
   --max_iters ${MAX_ITERS}
-'
+
 
 
 
@@ -88,7 +87,7 @@ PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/stage2_rpn
 PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_13}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/rpnTrain.yml"
 OUTPUT_FILE_NAME_21="21_rpn.caffemodel"
-:'
+
 ./tools/jg_rpn_train.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -98,7 +97,7 @@ OUTPUT_FILE_NAME_21="21_rpn.caffemodel"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_21}\
   --max_iters ${MAX_ITERS}
-'
+
 
 
 
@@ -107,7 +106,7 @@ PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_alt_opt/rpn_test.p
 PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_21}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/rpnGenerate.yml"
 OUTPUT_FILE_NAME_22="22_rpn_proposals.pkl"
-:'
+
 ./tools/jg_rpn_generate.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -116,7 +115,7 @@ OUTPUT_FILE_NAME_22="22_rpn_proposals.pkl"
   --path_cfg ${PATH_CONFIG_FILE} \
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_22}
-'
+
 
 
 
@@ -126,7 +125,7 @@ PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_21}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/netTrain.yml"
 PATH_PROPOSAL="${EXP_DIR}${OUTPUT_FILE_NAME_22}"
 OUTPUT_FILE_NAME_23="23_net.caffemodel"
-:'
+
 ./tools/jg_net_train.py \
   --gpu_id ${GPU_ID} \
   --path_net_proto ${PATH_PROTO} \
@@ -137,7 +136,7 @@ OUTPUT_FILE_NAME_23="23_net.caffemodel"
   --output_file_name ${OUTPUT_FILE_NAME_23}\
   --path_proposal ${PATH_PROPOSAL}\
   --max_iters ${MAX_ITERS}
-'
+
 
 
 
