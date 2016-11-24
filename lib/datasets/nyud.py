@@ -290,7 +290,7 @@ class nyud(imdb):
             filename)
         return path
 
-    def _write_nyud_results_file(self, all_boxes):
+    def _write_nyud_results_file(self, all_boxes, output_dir):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
@@ -378,7 +378,7 @@ class nyud(imdb):
         print "#############################################################"
         print "WRITING RESULTS FILES"
         print ""
-        self._write_nyud_results_file(all_boxes)
+        self._write_nyud_results_file(all_boxes,output_dir)
 
         print ""
         print ""
