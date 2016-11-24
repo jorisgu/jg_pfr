@@ -286,7 +286,6 @@ class nyud(imdb):
         filename = 'det_' + self._image_set + '_{:s}.txt'
         path = os.path.join(
             output_dir,
-            'results',
             filename)
         return path
 
