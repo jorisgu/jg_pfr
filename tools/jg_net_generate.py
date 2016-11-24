@@ -62,6 +62,7 @@ if __name__ == '__main__':
     imdb = get_imdb(args.imdb_name)
     #imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:
+        print "ERROR, should use RPN for testing !!!!"
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
     #test_net(net, imdb, max_per_image=args.max_per_image, vis=args.vis)
