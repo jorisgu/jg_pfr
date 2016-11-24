@@ -79,7 +79,7 @@ OUTPUT_FILE_NAME_13="13_net.caffemodel"
   --output_file_name ${OUTPUT_FILE_NAME_13}\
   --path_proposal ${PATH_PROPOSAL}\
   --max_iters ${MAX_ITERS}
-:'
+'
 
 
 
@@ -98,7 +98,7 @@ OUTPUT_FILE_NAME_21="21_rpn.caffemodel"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_21}\
   --max_iters ${MAX_ITERS}
-:'
+'
 
 
 
@@ -116,7 +116,7 @@ OUTPUT_FILE_NAME_22="22_rpn_proposals.pkl"
   --path_cfg ${PATH_CONFIG_FILE} \
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_22}
-:'
+'
 
 
 
@@ -137,7 +137,7 @@ OUTPUT_FILE_NAME_23="23_net.caffemodel"
   --output_file_name ${OUTPUT_FILE_NAME_23}\
   --path_proposal ${PATH_PROPOSAL}\
   --max_iters ${MAX_ITERS}
-:'
+'
 
 
 
