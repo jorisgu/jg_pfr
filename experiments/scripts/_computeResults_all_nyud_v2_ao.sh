@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ############################ rgb raw ############################
-#./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_rgb_raw_8bits_nyud_v2_40gupta nyud_v2_test_rgb_raw_8bits
+./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_rgb_raw_8bits_nyud_v2_40gupta nyud_v2_test_rgb_raw_8bits
 
 ############################ depth raw ############################
 #./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_d_raw_normal_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_normal_8bits
@@ -49,4 +49,4 @@
 
 
 ############################ rgb repetition ############################
-./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_rgb_raw_8bits_nyud_v2_40gupta_repetition nyud_v2_test_rgb_raw_8bits
+# ./experiments/scripts/jg_test_set_all_ao_nyud_v2_40gupta.sh ao_rgb_raw_8bits_nyud_v2_40gupta_repetition nyud_v2_test_rgb_raw_8bits
