@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ############################ rgb raw ############################
-#./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_raw_8bits nyud_v2_trainval_rgb_raw_8bits nyud_v2_test_rgb_raw_8bits 100000
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_raw_8bits nyud_v2_trainval_rgb_raw_8bits nyud_v2_test_rgb_raw_8bits 100000
 
 ############################ depth raw ############################
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_normal_8bits nyud_v2_trainval_d_raw_normal_8bits nyud_v2_test_d_raw_normal_8bits 100000
@@ -27,7 +27,7 @@
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqRandom_8bits nyud_v2_trainval_d_raw_histeqRandom_8bits nyud_v2_test_d_raw_histeqRandom_8bits 100000
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqBack_8bits nyud_v2_trainval_d_raw_histeqBack_8bits nyud_v2_test_d_raw_histeqBack_8bits 100000
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqFront_8bits nyud_v2_trainval_d_raw_histeqFront_8bits nyud_v2_test_d_raw_histeqFront_8bits 100000
-#./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqRandom_16bits nyud_v2_trainval_d_raw_histeqRandom_16bits nyud_v2_test_d_raw_histeqRandom_16bits 100000
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqRandom_16bits nyud_v2_trainval_d_raw_histeqRandom_16bits nyud_v2_test_d_raw_histeqRandom_16bits 100000
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqBack_16bits nyud_v2_trainval_d_raw_histeqBack_16bits nyud_v2_test_d_raw_histeqBack_16bits 100000
 #./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_d_raw_histeqFront_16bits nyud_v2_trainval_d_raw_histeqFront_16bits nyud_v2_test_d_raw_histeqFront_16bits 100000
 
@@ -54,4 +54,4 @@
 
 
 ############## REPETITION
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 repetition_rgb_raw_8bits nyud_v2_trainval_rgb_raw_8bits nyud_v2_test_rgb_raw_8bits 100000
+#./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_raw_8bits nyud_v2_trainval_rgb_raw_8bits nyud_v2_test_rgb_raw_8bits 100000

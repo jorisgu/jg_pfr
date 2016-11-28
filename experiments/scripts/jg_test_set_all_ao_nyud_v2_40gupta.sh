@@ -13,7 +13,9 @@ export PYTHONUNBUFFERED="True"
 CANAL=$1
 NAME_TEST_IMDB=$2
 
-EXP_DIR="output/all_results_voc2010/${CANAL}/${SET}"
+EXP_DIR="output/testing_voc2010/${CANAL}/${SET}"
+#EXP_DIR="output/testing_voc2007/${CANAL}/${SET}"
+#EXP_DIR="output/testing/${CANAL}/${SET}"
 mkdir -p ${EXP_DIR}
 LOG_FILE="${EXP_DIR}log.txt"
 exec &> >(tee -a "$LOG_FILE")
