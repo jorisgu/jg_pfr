@@ -91,13 +91,13 @@ class nyud(imdb):
                        'use_diff'    : False,
                        'matlab_eval' : False,
                        'rpn_file'    : None,
-                       'old_pascal_metric'    : False,
+                       'old_pascal_metric'    : True,
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
                 'NYUD path does not exist: {}'.format(self._devkit_path)
         assert os.path.exists(self._data_path), \
-                'Path does not exist: {}'.format(self._data_path)
+                'Data path does not exist: {}'.format(self._data_path)
 
     def image_path_at(self, i):
         """
