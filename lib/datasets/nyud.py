@@ -86,7 +86,7 @@ class nyud(imdb):
         self._comp_id = ''
 
         # NYUD specific config options
-        self.config = {'cleanup'     : True,
+        self.config = {'cleanup'     : False,
                        'use_salt'    : False,
                        'use_diff'    : False,
                        'matlab_eval' : False,
@@ -416,7 +416,7 @@ class nyud(imdb):
             self.config['cleanup'] = False
         else:
             self.config['use_salt'] = True
-            self.config['cleanup'] = True
+            self.config['cleanup'] = False
 
 if __name__ == '__main__':
     from datasets.nyud import nyud
