@@ -120,37 +120,37 @@
 ##./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh i10 i100 ao_rgb_i_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
 
 ############################ iAll ############################
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i10 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i20 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i30 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i40 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i50 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i60 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i70 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i80 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i90 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i100 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i10 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i20 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i30 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i40 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i50 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i60 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i70 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i80 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i90 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iAll i100 ao_rgb_iAll_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
 
 ############################ iR100-60 ############################
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i10 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta//23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i20 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i30 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i40 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i50 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i60 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i70 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i80 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i90 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i100 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i10 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta//23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i20 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i30 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i40 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i50 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i60 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i70 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i80 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i90 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR100-60 i100 ao_rgb_iRange_100_60_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
 
 ############################ iR50-10 ############################
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i10 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i20 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i30 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i40 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i50 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i60 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i70 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i80 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i90 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
-#./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i100 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i10 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_10_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i20 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_20_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i30 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_30_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i40 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_40_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i50 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_50_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i60 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_60_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i70 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_70_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i80 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_80_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i90 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_i_90_8bits
+./experiments/scripts/jg_test_set_rgb_intensity_ao_nyud_v2_40gupta.sh iR50-10 i100 ao_rgb_iRange_50_10_8bits_nyud_v2_40gupta/23_net.caffemodel nyud_v2_test_rgb_raw_8bits
