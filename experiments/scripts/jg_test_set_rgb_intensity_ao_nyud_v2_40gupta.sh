@@ -21,7 +21,7 @@ SET=$2
 PATH_BINARY=$3
 NAME_TEST_IMDB=$4
 
-EXP_DIR="output/rgbIntensity_${NAME_DATASET}/${NETWORK}/${SET}/"
+EXP_DIR="output/new_rgbIntensity_${NAME_DATASET}/${NETWORK}/${SET}/"
 mkdir -p ${EXP_DIR}
 LOG_FILE="${EXP_DIR}log.txt"
 exec &> >(tee -a "$LOG_FILE")
