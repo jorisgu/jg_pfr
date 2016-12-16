@@ -91,7 +91,7 @@ class nyud(imdb):
                        'use_diff'    : False,
                        'matlab_eval' : False,
                        'rpn_file'    : None,
-                       'old_pascal_metric'    : True,
+                       'old_pascal_metric'    : False,
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
