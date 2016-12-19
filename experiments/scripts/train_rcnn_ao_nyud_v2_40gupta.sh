@@ -18,7 +18,8 @@ NAME_TRAIN_IMDB=$3
 NAME_TEST_IMDB=$4
 MAX_ITERS=$5
 
-EXP_DIR="output/${KEY}_${NAME_DATASET}_`date +'%Y-%m-%d_%H-%M-%S'`/"
+EXP_DIR="output/${KEY}"
+#_${NAME_DATASET}_`date +'%Y-%m-%d_%H-%M-%S'`/"
 mkdir -p ${EXP_DIR}
 LOG_FILE="${EXP_DIR}log.txt"
 exec &> >(tee -a "$LOG_FILE")

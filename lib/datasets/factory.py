@@ -30,15 +30,15 @@ for year in ['v1', 'v2']:
                     'val',
                     'trainval',
 
-                    'test_i_50_10',
-                    'train_i_50_10',
-                    'val_i_50_10',
-                    'trainval_i_50_10',
+                    'test_i_r_50_10',
+                    'train_i_r_50_10',
+                    'val_i_r_50_10',
+                    'trainval_i_r_50_10',
 
-                    'test_i_100_60',
-                    'train_i_100_60',
-                    'val_i_100_60',
-                    'trainval_i_100_60',
+                    'test_i_r_100_60',
+                    'train_i_r_100_60',
+                    'val_i_r_100_60',
+                    'trainval_i_r_100_60',
 
                     'test_i_all',
                     'train_i_all',
@@ -55,15 +55,15 @@ for year in ['v1', 'v2']:
                     'valGupta_i_all',
                     'trainvalGupta_i_all',
 
-                    'testGupta_i_100_60',
-                    'trainGupta_i_100_60',
-                    'valGupta_i_100_60',
-                    'trainvalGupta_i_100_60',
+                    'testGupta_i_r_100_60',
+                    'trainGupta_i_r_100_60',
+                    'valGupta_i_r_100_60',
+                    'trainvalGupta_i_r_100_60',
 
-                    'testGupta_i_50_10',
-                    'trainGupta_i_50_10',
-                    'valGupta_i_50_10',
-                    'trainvalGupta_i_50_10']:
+                    'testGupta_i_r_50_10',
+                    'trainGupta_i_r_50_10',
+                    'valGupta_i_r_50_10',
+                    'trainvalGupta_i_r_50_10']:
 
         for chanel in [ 'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
@@ -81,7 +81,7 @@ for year in ['v1', 'v2']:
                         'd_raw_histeqFront_16bits',
                         'd_raw_histeqRandom_8bits',
                         'd_raw_histeqRandom_16bits',
-                        'rgb_raw_8bits',
+                        'rgb_i_100_8bits',
                         'rgb_i_10_8bits',
                         'rgb_i_20_8bits',
                         'rgb_i_30_8bits',
@@ -91,9 +91,9 @@ for year in ['v1', 'v2']:
                         'rgb_i_70_8bits',
                         'rgb_i_80_8bits',
                         'rgb_i_90_8bits',
-                        'rgb_iRange_100_60_8bits',
-                        'rgb_iRange_50_10_8bits',
-                        'rgb_iAll_8bits']:
+                        'rgb_i_r_100_60_8bits',
+                        'rgb_i_r_50_10_8bits',
+                        'rgb_i_all_8bits']:
             name = 'nyud_{}_{}_{}'.format(year, split, chanel)
             __sets[name] = (lambda split=split, year=year, chanel=chanel: nyud(split, year, chanel))
 
