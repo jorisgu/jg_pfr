@@ -24,7 +24,7 @@ for year in ['2007', '2012']:
 # Set up nyud_<year>_<split>_<chanel>
 for year in ['v1', 'v2']:
     for split in [  'fake',
-    
+
                     'test',
                     'train',
                     'val',
@@ -48,7 +48,22 @@ for year in ['v1', 'v2']:
                     'testGupta',
                     'trainGupta',
                     'valGupta',
-                    'trainvalGupta']:
+                    'trainvalGupta',
+
+                    'testGupta_i_all',
+                    'trainGupta_i_all',
+                    'valGupta_i_all',
+                    'trainvalGupta_i_all',
+
+                    'testGupta_i_100_60',
+                    'trainGupta_i_100_60',
+                    'valGupta_i_100_60',
+                    'trainvalGupta_i_100_60',
+
+                    'testGupta_i_50_10',
+                    'trainGupta_i_50_10',
+                    'valGupta_i_50_10',
+                    'trainvalGupta_i_50_10']:
 
         for chanel in [ 'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
