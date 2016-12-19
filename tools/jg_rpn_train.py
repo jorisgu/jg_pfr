@@ -97,9 +97,9 @@ if __name__ == '__main__':
                             pretrained_model=args.path_net_weights,
                             max_iters=args.max_iters)
     # Cleanup all but the final model
-    #for i in model_paths[:-1]:
-    #    os.remove(i)
+    for i in model_paths[:-1]:
+        os.remove(i)
     rpn_model_path = model_paths[-1]
-    #os.rename(rpn_model_path, args.output_dir+args.output_file_name)
-    shutil.copy(rpn_model_path, args.output_dir+args.output_file_name)
+    os.rename(rpn_model_path, args.output_dir+args.output_file_name)
+    #shutil.copy(rpn_model_path, args.output_dir+args.output_file_name)
     print "Final model saved under:",args.output_dir+args.output_file_name
