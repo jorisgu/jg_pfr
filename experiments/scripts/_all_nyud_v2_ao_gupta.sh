@@ -8,7 +8,7 @@
 ###################################################################
 
 ############################ rgb raw ############################
-./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_i_100_8bits nyud_v2_trainvalGupta_rgb_raw_8bits nyud_v2_testGupta_rgb_raw_8bits 50
+./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_i_100_8bits nyud_v2_trainvalGupta_rgb_i_100_8bits nyud_v2_testGupta_rgb_i_100_8bits 50
 
 ############################ rgb variable I ############################
 ./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 ao_rgb_i_10_8bits nyud_v2_trainvalGupta_rgb_i_10_8bits nyud_v2_testGupta_rgb_i_10_8bits 50
