@@ -65,7 +65,8 @@ for year in ['v1', 'v2']:
                     'valGupta_i_r_50_10',
                     'trainvalGupta_i_r_50_10']:
 
-        for chanel in [ 'd_raw_focus_8bits',
+        for chanel in [ 'd_raw_DNA_8bits',
+                        'd_raw_focus_8bits',
                         'd_raw_focus_16bits',
                         'd_raw_normal_8bits',
                         'd_raw_normal_16bits',
@@ -81,7 +82,6 @@ for year in ['v1', 'v2']:
                         'd_raw_histeqFront_16bits',
                         'd_raw_histeqRandom_8bits',
                         'd_raw_histeqRandom_16bits',
-                        'rgb_i_100_8bits',
                         'rgb_i_10_8bits',
                         'rgb_i_20_8bits',
                         'rgb_i_30_8bits',
@@ -91,6 +91,7 @@ for year in ['v1', 'v2']:
                         'rgb_i_70_8bits',
                         'rgb_i_80_8bits',
                         'rgb_i_90_8bits',
+                        'rgb_i_100_8bits',
                         'rgb_i_r_100_60_8bits',
                         'rgb_i_r_50_10_8bits',
                         'rgb_i_all_8bits']:

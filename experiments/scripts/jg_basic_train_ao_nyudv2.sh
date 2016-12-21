@@ -1,9 +1,4 @@
 #!/bin/bash
-# Usage:
-# ./experiments/scripts/train_rcnn_ao.sh
-#
-# Example:
-# ./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh 0 rgb nyud_v2_trainval_rgb nyud_v2_test_rgb 20
 
 set -x
 set -e
