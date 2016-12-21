@@ -13,7 +13,7 @@ from generate_anchors import generate_anchors
 from fast_rcnn.bbox_transform import bbox_transform_inv, clip_boxes
 from fast_rcnn.nms_wrapper import nms
 
-DEBUG = True
+DEBUG = False
 
 class ProposalLayer(caffe.Layer):
     """
@@ -153,10 +153,10 @@ class ProposalLayer(caffe.Layer):
         batch_inds = np.zeros((proposals.shape[0], 1), dtype=np.float32)
         blob = np.hstack((batch_inds, proposals.astype(np.float32, copy=False)))
         top_proposal_shape_before = top[0].data.shape
-        print "reshaping : top_proposal_shape_before =",top_proposal_shape_before
+        #print "reshaping : top_proposal_shape_before =",top_proposal_shape_before
         top[0].reshape(*(blob.shape))
         top_proposal_shape_after = top[0].data.shape
-        print "reshaping : top_proposal_shape_after =",top_proposal_shape_after
+        #print "reshaping : top_proposal_shape_after =",top_proposal_shape_after
         top[0].data[...] = blob
 
         # [Optional] output scores blob
