@@ -398,28 +398,39 @@ layer {
 layer {
   name: 'proposal'
   type: 'Python'
+  phase: TRAIN
   bottom: 'im_info'
   bottom: 'gt_boxes'
   bottom: 'conv5_3'
+  #bottom:rpn_rois
   top: 'rois'
-  #phase: TRAIN
   python_param {
-    module: 'jg_layers.proposal_layers'
+    module: 'jg_layers.jg_proposal_layers'
     layer: 'TrainProposalLayer'
     param_str: "{\'width_BB\': 10, \'height_BB\': 10, \'ratio_bg_fg\': 0.5, '\number_ROIs'\:50}"
   }
 }
-
 layer {
-  name: "roi_pool5"
-  type: "ROIPooling"
-  bottom: "conv5_3"
-  bottom: "rois"
+  name: 'rebatching'
+  type: 'Python'
+  bottom: 'rois'
+  bottom: 'conv5_3'
+  top: 'conv5_3_rebatched'
+  python_param {
+    module: 'jg_layers.jg_rebatching_layers'
+    layer: 'BasicBatchingLayer'
+    param_str: "{\'debug\': 0}"
+  }
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5_3_rebatched"
   top: "pool5"
-  roi_pooling_param {
-    pooled_w: 6
-    pooled_h: 6
-    spatial_scale: 0.0625 # 1/16
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
   }
 }
 layer {

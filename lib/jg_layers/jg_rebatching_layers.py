@@ -9,17 +9,16 @@ import caffe
 import numpy as np
 
 
-class TrainProposalLayer(caffe.Layer):
+class BasicBatchingLayer(caffe.Layer):
     """
-    Generate bounding-box for training classification part of the network
+    Generate new batch from a blob (ie. a features space) (eg. conv5_3) and rois
+    from (images_batch_size,512,13,13)
+    to   (num_rois, 512, roi_height, roi_width)
     """
 
     def setup(self, bottom, top):
         params = eval(self.param_str)
-        self.W = params['width_BB']
-        self.H = params['height_BB']
-        self.ratio_bg_fg = params['ratio_bg_fg']
-        self.number_ROIs = params['number_ROIs']
+        self.debug = params['debug']
 
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a

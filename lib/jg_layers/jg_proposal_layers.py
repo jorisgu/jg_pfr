@@ -7,7 +7,6 @@
 
 import caffe
 import numpy as np
-import yaml
 
 
 class TrainProposalLayer(caffe.Layer):
@@ -16,39 +15,47 @@ class TrainProposalLayer(caffe.Layer):
     """
 
     def setup(self, bottom, top):
-        # parse the layer parameter string, which must be valid YAML
-        layer_params = yaml.load(self.param_str_)
-
-        self._feat_stride = layer_params['feat_stride']
-        anchor_scales = layer_params.get('scales', (8, 16, 32))
-        self._anchors = generate_anchors(scales=np.array(anchor_scales))
-        self._num_anchors = self._anchors.shape[0]
+        params = eval(self.param_str)
+        self.W = params['width_BB']
+        self.H = params['height_BB']
+        self.ratio_bg_fg = params['ratio_bg_fg']
+        self.number_ROIs = params['number_ROIs']
 
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a
         # rectangle (x1, y1, x2, y2)
         top[0].reshape(1, 5)
 
-        # scores blob: holds scores for R regions of interest
-        if len(top) > 1:
-            top[1].reshape(1, 1, 1, 1)
 
     def forward(self, bottom, top):
 
-        assert bottom[0].data.shape[0] == 1, \
-            'Only single item batches are supported'
-
         cfg_key = str(self.phase) # either 'TRAIN' or 'TEST'
-        # todo eithter train (all image in ROIs) or test (from a RPN ?)
+        # todo either train (all image in ROIs) or test (from a RPN ?)
 
-        im_info = bottom[2].data[0, :]
+        im_info = bottom[0].data[0, :] # c h w
+        gt_boxes = bottom[1].data
+        data_shape = bottom[2].data.shape # batch_size c h w eg. 2 512 13 13
+        batch_size = data_shape[0]
 
-        N = 20 #number of ROIS
-        W = 10
-        H = 10
-        D = 200 #todo $$$ from bottom size
+        scale_reduction_w = data_shape[3]/im_info[2]
+        scale_reduction_h = data_shape[2]/im_info[1]
 
-        blob = np.zeros((N,D,H,W))
+        W = self.W
+        H = self.H
+
+        #generateROISwithParams()
+        # todo generation of better bounding boxe for full ranging of the image
+        # todo take into account the scaling (automatically)
+        # todo a roi layer wich is just a "rebatching layer"
+        N = batch_size*self.number_ROIs
+        blob = np.zeros((N,5))
+        for i in range(batch_size): #for each image
+            for j in range(self.number_ROIs):
+                x1 = j*2
+                y1 = j*2
+                x2 = x1 + 100
+                y2 = y1 + 100
+                blob[i*self.number_ROIs+j,:] = [i,x1,y1,x2,y2]
         top[0].reshape(*(blob.shape))
         top[0].data[...] = blob
 
@@ -60,10 +67,3 @@ class TrainProposalLayer(caffe.Layer):
     def reshape(self, bottom, top):
         """Reshaping happens during the call to forward."""
         pass
-
-def _filter_boxes(boxes, min_size):
-    """Remove all boxes with any side smaller than min_size."""
-    ws = boxes[:, 2] - boxes[:, 0] + 1
-    hs = boxes[:, 3] - boxes[:, 1] + 1
-    keep = np.where((ws >= min_size) & (hs >= min_size))[0]
-    return keep
