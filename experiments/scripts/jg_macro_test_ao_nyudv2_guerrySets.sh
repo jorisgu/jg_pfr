@@ -1,7 +1,5 @@
 #!/bin/bash
 
-############################ rgb raw ############################
-#./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_raw_8bits_nyud_v2_40gupta nyud_v2_test_rgb_raw_8bits
 
 ############################ depth DNA ############################
 ./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_DNA_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_DNA_8bits
@@ -15,8 +13,8 @@
 #./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_focus_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_focus_16bits
 
 ############################ HHA ############################
-#./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_HHA_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_HHA_8bits
-##./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_HHA_focus_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_HHA_focus_8bits
+./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_HHA_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_HHA_8bits
+#./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_HHA_focus_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_HHA_focus_8bits
 
 ############################ jet ############################
 #./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_jet_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_jet_8bits
@@ -44,6 +42,7 @@
 ##./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_i_70_8bits_nyud_v2_40gupta nyud_v2_test_rgb_i_70_8bits
 ##./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_i_80_8bits_nyud_v2_40gupta nyud_v2_test_rgb_i_80_8bits
 ##./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_i_90_8bits_nyud_v2_40gupta nyud_v2_test_rgb_i_90_8bits
+./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_i_100_8bits_nyud_v2_40gupta nyud_v2_test_rgb_i_100_8bits
 
 ############################ rgb mixed ############################
 ##./experiments/scripts/train_rcnn_ao_nyud_v2_40gupta.sh ao_rgb_iAll_8bits_nyud_v2_40gupta nyud_v2_test_i_all_rgb_iAll_8bits
