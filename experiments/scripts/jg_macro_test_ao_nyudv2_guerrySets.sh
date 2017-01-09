@@ -3,6 +3,9 @@
 ############################ rgb raw ############################
 #./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_rgb_raw_8bits_nyud_v2_40gupta nyud_v2_test_rgb_raw_8bits
 
+############################ depth DNA ############################
+./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_DNA_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_DNA_8bits
+
 ############################ depth raw ############################
 #./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_normal_8bits_nyud_v2_40gupta nyud_v2_test_d_raw_normal_8bits
 #./experiments/scripts/jg_basic_test_ao_nyudv2.sh ao_d_raw_normal_16bits_nyud_v2_40gupta nyud_v2_test_d_raw_normal_16bits
