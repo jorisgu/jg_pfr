@@ -13,7 +13,8 @@ exec &> >(tee -a "$LOG_FILE")
   --output_dir ${EXP_DIR} \
   --output_file_name 31_net_outputs.pkl
 
-  ./tools/jg_net_evaluate.py \
+mkdir -p "${EXP_DIR}results"
+./tools/jg_net_evaluate.py \
     --imdb_name ${TEST_IMDB} \
     --output_dir ${EXP_DIR} \
     --input_file_name 31_net_outputs.pkl
