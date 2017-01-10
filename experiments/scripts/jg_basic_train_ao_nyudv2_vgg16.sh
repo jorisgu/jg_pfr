@@ -134,7 +134,6 @@ OUTPUT_FILE_NAME_23="23_net.caffemodel"
   --output_dir ${EXP_DIR}\
   --output_file_name ${OUTPUT_FILE_NAME_23}\
   --path_proposal ${PATH_PROPOSAL}\
-  --max_iters ${MAX_ITERS}
   --max_iters 10000
   #--max_iters ${MAX_ITERS}
 
