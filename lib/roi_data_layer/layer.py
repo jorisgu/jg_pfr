@@ -101,6 +101,7 @@ class RoIDataLayer(caffe.Layer):
             self._name_to_top_map['im_info'] = idx
             idx += 1
 
+            print self.phase
             top[idx].reshape(1, 4)
             self._name_to_top_map['gt_boxes'] = idx
             idx += 1
