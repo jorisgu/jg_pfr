@@ -1,0 +1,16 @@
+train_net: "/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/train.prototxt"
+base_lr: 0.0001
+lr_policy: "step"
+gamma: 0.1
+stepsize: 4000
+display: 100
+# average_loss: 100
+iter_size: 1
+momentum: 0.9
+weight_decay: 0.0005
+# We disable standard caffe solver snapshotting and implement our own snapshot
+# function
+snapshot: 1000
+# We still use the snapshot prefix, though
+snapshot_prefix: "fcn_vgg16_rpn"
+iter_size: 2
