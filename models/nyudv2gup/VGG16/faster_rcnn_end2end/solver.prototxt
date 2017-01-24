@@ -1,9 +1,9 @@
-train_net: "/home/jogue/workspace/jg_pfr/models/pascal_voc/VGG16/faster_rcnn_end2end/train.prototxt"
-base_lr: 0.001
+train_net: "/home/jogue/workspace/jg_pfr/models/nyudv2gup/VGG16/faster_rcnn_end2end/train.prototxt"
+base_lr: 0.0001
 lr_policy: "step"
 gamma: 0.1
-stepsize: 50000
-display: 20
+stepsize: 795
+display: 5
 average_loss: 100
 # iter_size: 1
 momentum: 0.9
@@ -12,5 +12,5 @@ weight_decay: 0.0005
 # function
 snapshot: 0
 # We still use the snapshot prefix, though
-snapshot_prefix: "/home/jogue/workspace/jg_pfr/output/2017janvier23/vgg16_faster_rcnn"
+snapshot_prefix: "/home/jogue/workspace/jg_pfr/output/nyudv2gup/vgg16_faster_rcnn_e2e"
 iter_size: 2

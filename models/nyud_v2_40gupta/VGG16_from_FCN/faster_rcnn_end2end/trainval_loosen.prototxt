@@ -159,6 +159,7 @@ layer {
 layer {
   name: "conv3_1"
   type: "Convolution"
+  propagate_down: 0
   bottom: "pool2"
   top: "conv3_1"
   param {
@@ -416,7 +417,7 @@ layer {
 
 layer {
   name: "rpn_conv/3x3"
-  propagate_down: false
+  #propagate_down: false
   type: "Convolution"
   bottom: "conv5_3"
   top: "rpn/output"
@@ -649,6 +650,7 @@ layer {
 layer {
   name: "fc7"
   type: "Convolution"
+  propagate_down: false
   bottom: "fc6"
   top: "fc7"
   param {
@@ -683,7 +685,7 @@ layer {
 }
 layer {
   name: "cls_score"
-  propagate_down: false
+  #propagate_down: false
   type: "InnerProduct"
   bottom: "fc7"
   top: "cls_score"
@@ -707,7 +709,7 @@ layer {
 }
 layer {
   name: "bbox_pred"
-  propagate_down: false
+  #propagate_down: false
   type: "InnerProduct"
   bottom: "fc7"
   top: "bbox_pred"

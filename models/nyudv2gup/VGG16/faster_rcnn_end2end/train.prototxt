@@ -1,6 +1,6 @@
-name: "VGG_initiated_from_FCN"
+name: "VGG_ILSVRC_16_layers"
 layer {
-  name: 'input-data-train'
+  name: 'input-data'
   type: 'Python'
   top: 'data'
   top: 'im_info'
@@ -9,24 +9,6 @@ layer {
     module: 'roi_data_layer.layer'
     layer: 'RoIDataLayer'
     param_str: "'num_classes': 41"
-  }
-  include {
-    phase: TRAIN
-  }
-}
-layer {
-  name: 'input-data-test'
-  type: 'Python'
-  top: 'data'
-  top: 'im_info'
-  top: 'gt_boxes'
-  python_param {
-    module: 'roi_data_layer.layer'
-    layer: 'RoIDataLayer'
-    param_str: "'num_classes': 41"
-  }
-  include {
-    phase: TEST
   }
 }
 
@@ -36,18 +18,17 @@ layer {
   bottom: "data"
   top: "conv1_1"
   param {
-    lr_mult: 1
-    decay_mult: 1
+    lr_mult: 0
+    decay_mult: 0
   }
   param {
-    lr_mult: 2
+    lr_mult: 0
     decay_mult: 0
   }
   convolution_param {
     num_output: 64
-    pad: 100
+    pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -62,18 +43,17 @@ layer {
   bottom: "conv1_1"
   top: "conv1_2"
   param {
-    lr_mult: 1
-    decay_mult: 1
+    lr_mult: 0
+    decay_mult: 0
   }
   param {
-    lr_mult: 2
+    lr_mult: 0
     decay_mult: 0
   }
   convolution_param {
     num_output: 64
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -99,18 +79,17 @@ layer {
   bottom: "pool1"
   top: "conv2_1"
   param {
-    lr_mult: 1
-    decay_mult: 1
+    lr_mult: 0
+    decay_mult: 0
   }
   param {
-    lr_mult: 2
+    lr_mult: 0
     decay_mult: 0
   }
   convolution_param {
     num_output: 128
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -125,18 +104,17 @@ layer {
   bottom: "conv2_1"
   top: "conv2_2"
   param {
-    lr_mult: 1
-    decay_mult: 1
+    lr_mult: 0
+    decay_mult: 0
   }
   param {
-    lr_mult: 2
+    lr_mult: 0
     decay_mult: 0
   }
   convolution_param {
     num_output: 128
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -163,17 +141,14 @@ layer {
   top: "conv3_1"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 256
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -189,17 +164,14 @@ layer {
   top: "conv3_2"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 256
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -215,17 +187,14 @@ layer {
   top: "conv3_3"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 256
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -252,17 +221,14 @@ layer {
   top: "conv4_1"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -278,17 +244,14 @@ layer {
   top: "conv4_2"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -304,17 +267,14 @@ layer {
   top: "conv4_3"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -341,17 +301,14 @@ layer {
   top: "conv5_1"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -367,17 +324,14 @@ layer {
   top: "conv5_2"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -393,17 +347,14 @@ layer {
   top: "conv5_3"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   convolution_param {
     num_output: 512
     pad: 1
     kernel_size: 3
-    stride: 1
   }
 }
 layer {
@@ -412,11 +363,11 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3"
 }
+
 #========= RPN ============
 
 layer {
   name: "rpn_conv/3x3"
-  propagate_down: false
   type: "Convolution"
   bottom: "conv5_3"
   top: "rpn/output"
@@ -490,9 +441,6 @@ layer {
     layer: 'AnchorTargetLayer'
     param_str: "'feat_stride': 16"
   }
-  include {
-    phase: TRAIN
-  }
 }
 
 layer {
@@ -500,18 +448,16 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "rpn_cls_score_reshape"
   bottom: "rpn_labels"
-  top: "rpn_cls_loss"
-  loss_weight: 1
   propagate_down: 1
   propagate_down: 0
+  top: "rpn_cls_loss"
+  loss_weight: 1
   loss_param {
     ignore_label: -1
     normalize: true
   }
-  include {
-    phase: TRAIN
-  }
 }
+
 layer {
   name: "rpn_loss_bbox"
   type: "SmoothL1Loss"
@@ -522,9 +468,6 @@ layer {
   top: "rpn_loss_bbox"
   loss_weight: 1
   smooth_l1_loss_param { sigma: 3.0 }
-  include {
-    phase: TRAIN
-  }
 }
 
 #========= RoI Proposal ============
@@ -557,26 +500,19 @@ layer {
     layer: 'ProposalLayer'
     param_str: "'feat_stride': 16"
   }
-  include {
-    phase: TRAIN
-  }
 }
-layer {
-  name: 'proposal'
-  type: 'Python'
-  bottom: 'rpn_cls_prob_reshape'
-  bottom: 'rpn_bbox_pred'
-  bottom: 'im_info'
-  top: 'rois'
-  python_param {
-    module: 'rpn.proposal_layer'
-    layer: 'ProposalLayer'
-    param_str: "'feat_stride': 16"
-  }
-  include {
-    phase: TEST
-  }
-}
+
+#layer {
+#  name: 'debug-data'
+#  type: 'Python'
+#  bottom: 'data'
+#  bottom: 'rpn_rois'
+#  bottom: 'rpn_scores'
+#  python_param {
+#    module: 'rpn.debug_layer'
+#    layer: 'RPNDebugLayer'
+#  }
+#}
 
 layer {
   name: 'roi-data'
@@ -593,12 +529,10 @@ layer {
     layer: 'ProposalTargetLayer'
     param_str: "'num_classes': 41"
   }
-  include {
-    phase: TRAIN
-  }
 }
 
 #========= RCNN ============
+
 layer {
   name: "roi_pool5"
   type: "ROIPooling"
@@ -613,22 +547,17 @@ layer {
 }
 layer {
   name: "fc6"
-  type: "Convolution"
+  type: "InnerProduct"
   bottom: "pool5"
   top: "fc6"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
-  convolution_param {
+  inner_product_param {
     num_output: 4096
-    pad: 0
-    kernel_size: 7
-    stride: 1
   }
 }
 layer {
@@ -648,22 +577,17 @@ layer {
 }
 layer {
   name: "fc7"
-  type: "Convolution"
+  type: "InnerProduct"
   bottom: "fc6"
   top: "fc7"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
-  convolution_param {
+  inner_product_param {
     num_output: 4096
-    pad: 0
-    kernel_size: 1
-    stride: 1
   }
 }
 layer {
@@ -682,8 +606,7 @@ layer {
   }
 }
 layer {
-  name: "cls_score"
-  propagate_down: false
+  name: "cls_score_41"
   type: "InnerProduct"
   bottom: "fc7"
   top: "cls_score"
@@ -706,8 +629,7 @@ layer {
   }
 }
 layer {
-  name: "bbox_pred"
-  propagate_down: false
+  name: "bbox_pred_41"
   type: "InnerProduct"
   bottom: "fc7"
   top: "bbox_pred"
@@ -734,13 +656,10 @@ layer {
   type: "SoftmaxWithLoss"
   bottom: "cls_score"
   bottom: "labels"
-  top: "loss_cls"
-  loss_weight: 1
   propagate_down: 1
   propagate_down: 0
-  include {
-    phase: TRAIN
-  }
+  top: "loss_cls"
+  loss_weight: 1
 }
 layer {
   name: "loss_bbox"
@@ -751,7 +670,4 @@ layer {
   bottom: "bbox_outside_weights"
   top: "loss_bbox"
   loss_weight: 1
-  include {
-    phase: TRAIN
-  }
 }

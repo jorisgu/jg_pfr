@@ -149,9 +149,10 @@ if __name__ == '__main__':
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
 
     args = parse_args()
-
+    #prototxt = '/home/jogue/workspace/jg_pfr/models/nyudv2gup/VGG16/faster_rcnn_end2end/test.prototxt'
+    #caffemodel = '/home/jogue/workspace/jg_pfr/output/nyudv2gup/vgg16_faster_rcnn_e2e_iter_795.caffemodel'
     prototxt = '/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/test.prototxt'
-    caffemodel = '/home/jogue/workspace/jg_pfr/output/2017janvier22/_iter_795.caffemodel'
+    caffemodel = '/home/jogue/workspace/jg_pfr/output/2017janvier22/vgg16fcn_iter_117660.caffemodel'
 
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.'))

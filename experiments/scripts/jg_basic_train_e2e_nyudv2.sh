@@ -20,9 +20,12 @@ LOG_FILE="${EXP_DIR}log.txt"
 exec &> >(tee -a "$LOG_FILE")
 
 #PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_end2end/solver_pdconv5.prototxt"
-PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_end2end/solver.prototxt"
+#PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_end2end/solver.prototxt"
+PATH_PROTO="/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/solver_fcn.prototxt"
+PATH_PROTO="/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/solver_fcn_loosen.prototxt"
 #PATH_BINARY="/home/jguerry/workspace/jg_pfr/output/e2e_test_nyudv2_nyudv2_2016-12-21_17-13-14/net.caffemodel"
-PATH_BINARY="data/imagenet_models/VGG_CNN_M_1024.v2.caffemodel"
+#PATH_BINARY="data/imagenet_models/VGG_CNN_M_1024.v2.caffemodel"
+PATH_BINARY="/home/jogue/workspace/caffemodels/nyud-fcn32s-color-heavy.caffemodel"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/cfg_end2end.yml"
 OUTPUT_FILE_NAME_1="net.caffemodel"
 
@@ -39,7 +42,7 @@ OUTPUT_FILE_NAME_1="net.caffemodel"
 
 
 # generate output for test
-PATH_PROTO="models/nyud_v2_40gupta/VGG_CNN_M_1024/faster_rcnn_end2end/test.prototxt"
+PATH_PROTO="/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/test.prototxt"
 PATH_BINARY="${EXP_DIR}${OUTPUT_FILE_NAME_1}"
 PATH_CONFIG_FILE="experiments/cfgs/nyud_v2_40gupta/netTest.yml"
 OUTPUT_FILE_NAME_21="outputs.pkl"

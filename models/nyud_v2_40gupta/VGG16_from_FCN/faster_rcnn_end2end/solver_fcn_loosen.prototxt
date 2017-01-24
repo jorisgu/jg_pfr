@@ -8,14 +8,14 @@ lr_policy: "step"
 gamma: 0.1
 
 # number of iteration before applying gamma to LR (trainVal size : 795 (multiple : 2*:1590/3*:2385/4*:3180 ))
-stepsize: 2385
+stepsize: 4770
 
 # 795*30=23850
 max_iter: 159000
 
 
-momentum: 0
-#momentum: 0.9
+#momentum: 0
+momentum: 0.9
 
 weight_decay: 0.0005
 
@@ -28,7 +28,7 @@ snapshot_prefix: '/home/jogue/workspace/jg_pfr/output/2017janvier22/vgg16fcn'
 
 
 
-net:'/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/trainval.prototxt'
+net:'/home/jogue/workspace/jg_pfr/models/nyud_v2_40gupta/VGG16_from_FCN/faster_rcnn_end2end/trainval_loosen.prototxt'
 
 test_iter: 654
 
