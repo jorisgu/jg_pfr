@@ -9,109 +9,80 @@ import xml.etree.ElementTree as ET
 #import scipy.io
 #from multiprocessing import Process, Queue
 
-class patches:
+class dataset:
     """
-    Class to make patches of one image (patch can be called by instance(patch_id) from 0 to instance.nb_views)
+    - keep list of images
+    - keep list of crops for each images
+    - reload data if already computed
+    - give a batch on demand (with a unique id making it reproductible)
     """
 
-    def prepareViews(self, img_w, img_h, stride=112, crop_size=224):
+    def prepareCrops(img_w, img_h, overlap_max=0.5, crop_size=100):
 
-        list_x0 = range(0,img_w,stride)
-
-
->>> for n in range(int(math.ceil(float(500)/float(224))),500-224+1):
-...     s =int(math.floor((float(500)-float(224))/(float(n)*float(224))))
-...     r = s/224.
-...     print s, r
-
-        views = []
-        for min_size in list_x0:
-            stride = int(math.ceil(ratio_for_stride*min_size))
-            i_w = 0
-            i_h = 0
-            while i_w + min_size-1 < img_w:
-                i_h = 0
-                while i_h + min_size-1 < img_h:
-                    views.append([min_size, i_w, i_w + min_size-1, i_h, i_h + min_size-1])
-                    i_h += stride
-                i_w += stride
-        return views
-
-    def __init__(self, img_in_path, edge_length_max = 640., verbose=False):
-        self.img = io.imread(img_in_path)
-        self.img_w = self.img.shape[0]
-        self.img_h = self.img.shape[1]
-
-        self.edge_length_max = edge_length_max
-
-	if self.img.ndim == 2:
-             self.img_c = 1
-	     self.img = np.expand_dims(self.img, axis=2)
-	elif self.img.shape[2] == 4:
-             self.img = self.img[:, :, :3]
-             self.img_c = 3
-	elif self.img.shape[2] == 3:
-             self.img_c = 3
-	else:
-             print('ERROR IN images.py patches.__init__ : file has not a good format (must be RGB, RGBA or grayscale')
-
-        need_downsampling = False
-        if self.img_w > edge_length_max:
-	    if verbose:
-	       print('w too big')
-	       print('old : ' + str(self.img_w) + 'x' + str(self.img_h))
-
-	    self.img_h = int(1.*self.img_h/self.img_w*self.edge_length_max)
-            self.img_w = self.edge_length_max
-            need_downsampling = True
-	    if verbose:
-	       print('new : ' + str(self.img_w) + 'x' + str(self.img_h))
-
-        if self.img_h > edge_length_max:
-	    if verbose:
-	       print('h too big')
-	       print('old : ' + str(self.img_w) + 'x' + str(self.img_h))
-	    self.img_w = int(1.*self.img_w/self.img_h*self.edge_length_max)
-            self.img_h = self.edge_length_max
-            need_downsampling = True
-	    if verbose:
-	       print('new : ' + str(self.img_w) + 'x' + str(self.img_h))
-
-        if need_downsampling:
-            self.img = resize(self.img,(self.img_w,self.img_h), preserve_range=True)
+        tresh_h = max(3,int(0.10*crop_size))
+        delta = img_h
+        smax_h = crop_size
+        smin_h = 0
+        #for s from smax to smin:
+        n_h = -1
+        s_h = -1
+        d_h = -1
+        for s in range(smax_h,smin_h,-1):
+            n_step_max = int(float((img_h-crop_size))/s+1)
+            for n in range(n_step_max,0,-1):
+                delta = int(float(img_h - crop_size - s*(n-1)) /2 + 0.5)
+                if delta<tresh_h:
+                    n_h = n
+                    s_h = s
+                    d_h = delta
+                    #print "H",img_h,"h",crop_size,"s",s,"n",n,"delta",delta, "tresh",tresh_h
+                    #print "h + (n-1)*s+2d =",crop_size + (n_h-1)*s_h+2*d_h
+                    break
+            if delta<tresh_h:
+                break
 
 
+        tresh_w = max(3,int(0.10*crop_size))
+        delta = img_w
+        smax_w = crop_size
+        smin_w = 0
+        #for s from smax to smin:
+        n_w = -1
+        s_w = -1
+        d_w = -1
+        for s in range(smax_w,smin_w,-1):
+            n_step_max = int(float((img_w-crop_size))/s+1)
+            for n in range(n_step_max,0,-1):
+                delta = int(float(img_w - crop_size - s*(n-1)) /2 + 0.5)
+                if delta<tresh_w:
+                    n_w = n
+                    s_w = s
+                    d_w = delta
+                    #print "H",img_h,"h",crop_size,"s",s,"n",n,"delta",delta, "tresh",tresh_h
+                    #print "w + (n-1)*s+2d =",crop_size + (n_w-1)*s_w+2*d_w
+                    break
+            if delta<tresh_h:
+                break
 
+        crops = np.zeros([n_w*n_h,4],dtype=np.uint32)
+        pos = 0
+        for i_w in range(n_w):
+            for i_h in range(n_h):
 
+                crops[pos,:] = [d_w+i_w*s_w, d_h+i_h*s_h, d_w+i_w*s_w+crop_size, d_h+i_h*s_h+crop_size]
+                pos = pos + 1
 
-        self.views = self.prepareViews(self.img_w,self.img_h)
-        self.nb_views = len(self.views)
+        return crops
 
-    def __call__(self, patch_id, toresize = True):
-        selected_view = self.views[patch_id]
-        selected_img = np.zeros((selected_view[0],selected_view[0],self.img_c),dtype=np.int8)
-        selected_img = self.img[selected_view[1]:selected_view[2],selected_view[3]:selected_view[4],:]
-        if toresize:
-             resized_img = resize(selected_img,(256,256))
-             return resized_img
-        else:
-             return selected_img
+    def __init__(self):
+        pass
 
-    def show(self):
-        patches_id = range(0, self.nb_views)
-        ic = io.ImageCollection(patches_id, load_func=self.__call__)
-        collV = CollectionViewer(ic)
-        collV.show()
-
-    def nb_views_max(self, img_w=-1, img_h=-1, ratio_for_stride=0.5, crop_size_min=32, crop_size_max=257, crop_size_step=32, verbose=False):
-	if img_w==-1:
-	   img_w = self.edge_length_max
-	if img_h==-1:
-	   img_h = self.edge_length_max
-    	return len(self.prepareViews(img_w, img_h, ratio_for_stride, crop_size_min, crop_size_max, crop_size_step, verbose))
+    def __call__(self, crop_id):
+        """Return the ..."""
+        pass
 
 class jg_input_voc_layer(caffe.Layer):
-
+    """works with only on image for now by batch"""
 
     def get_classes(self):
         with open(self.classes_file_path, 'r') as fp:
@@ -126,6 +97,12 @@ class jg_input_voc_layer(caffe.Layer):
         """Setup the layer."""
 
 
+        # tops: check configuration
+        if len(top) != 3:
+            raise Exception("Need to define {} tops for all outputs.")
+        # data layers have no bottoms
+        if len(bottom) != 0:
+            raise Exception("Do not define a bottom.")
 
         layer_params = yaml.load(self.param_str_)
 
@@ -160,7 +137,6 @@ class jg_input_voc_layer(caffe.Layer):
         self.max_width = layer_params['max_width']
         self.max_height = layer_params['max_height']
 
-
         self.classes = []
         self.get_classes()
         self.num_classes = len(self.classes)
@@ -173,10 +149,11 @@ class jg_input_voc_layer(caffe.Layer):
         self.batch_ready = False
 
         self.list_images = open(self.set_file_path, 'r').read().splitlines()
-        print "Number of image :",len(self.list_images)
+        self.nb_images = len(self.list_images)
+        print "Number of image :",self.nb_images
         print "Separated in", self.num_classes, "classes :", self._class_to_ind
         print "Training with a batch_size of :",self.batch_size
-        self.define_new_batch()
+        #self.define_new_batch()
 
     def forward(self, bottom, top):
         """
@@ -186,13 +163,29 @@ class jg_input_voc_layer(caffe.Layer):
             #rois
         """
 
+        # fill blob with data
+        top[0].data[...] = self.batch_data
+        top[1].data[...] = self.batch_segmentation
+        top[2].data[...] = self.batch_rois
+
+        # Update number of forward pass done
+        self.iter_counter += 1
+        self.iter_counter=self.iter_counter%self.nb_images
+
+    def backward(self, top, propagate_down, bottom):
+        #bottom[0].diff[...] = 10 * top[0].diff
+        #self.loss = top[0].diff
+        pass
+
+
+    def reshape(self, bottom, top):
         #while !self.batch_ready:
         #    pass
 
         # make batch
-        self.batch_data = self.load_img_data(0)[np.newaxis, ...]
-        self.batch_segmentation = self.load_img_segmentation(0)[np.newaxis, ...]
-        self.batch_rois = self.load_img_rois(0)[np.newaxis, ...]
+        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
+        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
+        self.batch_rois = self.load_img_rois(self.iter_counter)[np.newaxis, ...]
 
         # reshape net
         top[0].reshape(*self.batch_data.shape)
@@ -201,20 +194,6 @@ class jg_input_voc_layer(caffe.Layer):
         #top[0].reshape(1, *self.batch_data)
         #top[1].reshape(1, *self.batch_segmentation)
         #top[2].reshape(1, *self.batch_rois)
-
-        # fill blob with data
-        top[0].data[...] = self.batch_data
-        top[1].data[...] = self.batch_segmentation
-        top[2].data[...] = self.batch_rois
-
-        # Update number of forward pass done
-        self.iter_counter += 1
-
-    def backward(self, top, propagate_down, bottom):
-        pass
-
-    def reshape(self, bottom, top):
-        pass
 
     def load_img_data(self, idx=0):
         """
@@ -259,7 +238,7 @@ class jg_input_voc_layer(caffe.Layer):
 
         num_objs = len(objs)
 
-        img_rois = np.zeros((num_objs, 5), dtype=np.uint16)
+        img_rois = np.zeros((num_objs, 5), dtype=np.uint32)
 
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
@@ -272,7 +251,7 @@ class jg_input_voc_layer(caffe.Layer):
             cls = self._class_to_ind[obj.find('name').text.lower().strip()]
             img_rois[ix, :] = [cls, x1, y1, x2, y2]
 
-
+        img_rois = img_rois[np.newaxis, ...]
         return img_rois
 
     def load_batch_data(self):
