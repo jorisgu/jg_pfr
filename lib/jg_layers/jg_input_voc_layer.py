@@ -312,6 +312,22 @@ class jg_rebatching_layer(caffe.Layer):
 
 
     def backward(self, top, propagate_down, bottom):
+    """
+    RELU BACKWARD :
+      if (propagate_down[0]) {
+        const Dtype* bottom_data = bottom[0]->cpu_data();
+        const Dtype* top_diff = top[0]->cpu_diff();
+        Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
+        const int count = bottom[0]->count();
+        Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
+        for (int i = 0; i < count; ++i) {
+          bottom_diff[i] = top_diff[i] * ((bottom_data[i] > 0)
+              + negative_slope * (bottom_data[i] <= 0));
+        }
+        https://github.com/BVLC/caffe/blob/master/src/caffe/layers/reshape_layer.cpp
+        https://github.com/BVLC/caffe/blob/master/src/caffe/layers/concat_layer.cpp
+    """
+
         bottom[0].diff[...] = 10 * top[0].diff
         #bottom[0].diff[...] = 10 * top[0].diff
         #self.loss = top[0].diff
