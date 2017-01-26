@@ -83,6 +83,7 @@ class dataset:
 
 class jg_input_voc_layer(caffe.Layer):
     """works with only on image for now by batch"""
+    #improvement here : https://github.com/BVLC/caffe/blob/master/examples/pycaffe/layers/pascal_multilabel_datalayers.py
 
     def get_classes(self):
         with open(self.classes_file_path, 'r') as fp:
@@ -177,7 +178,6 @@ class jg_input_voc_layer(caffe.Layer):
         #self.loss = top[0].diff
         pass
 
-
     def reshape(self, bottom, top):
         #while !self.batch_ready:
         #    pass
@@ -209,6 +209,140 @@ class jg_input_voc_layer(caffe.Layer):
         #in_ -= self.mean_bgr
         in_ = in_.transpose((2,0,1))
         return in_
+
+    def load_img_segmentation(self, idx=0):
+        """
+        Load segmentation image as 1 x height x width integer array of label indices.
+        The leading singleton dimension is required by the loss.
+        """
+        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[idx],self.segmentation_file_extension))
+        segmentation = np.array(im, dtype=np.uint8)
+        segmentation = segmentation[np.newaxis, ...]
+        return segmentation
+
+    def load_img_rois(self, idx):
+        """
+        Load bounding boxes info from pascal voc template data
+        """
+        filename = '{}{}.{}'.format(self.annotations_folder, self.list_images[idx],self.annotation_file_extension)
+        tree = ET.parse(filename)
+        objs = tree.findall('object')
+        #if not self.config['use_diff']:
+        ## Exclude the samples labeled as difficult
+        #    non_diff_objs = [
+        #        obj for obj in objs if int(obj.find('difficult').text) == 0]
+        #    objs = non_diff_objs
+
+        only_in_cls_obj = [obj for obj in objs if obj.find('name').text.lower().strip() in self.classes]
+        objs = only_in_cls_obj
+
+        num_objs = len(objs)
+
+        img_rois = np.zeros((num_objs, 5), dtype=np.uint32)
+
+        # Load object bounding boxes into a data frame.
+        for ix, obj in enumerate(objs):
+            bbox = obj.find('bndbox')
+            # Make pixel indexes 0-based
+            x1 = float(bbox.find('xmin').text) - 1
+            y1 = float(bbox.find('ymin').text) - 1
+            x2 = float(bbox.find('xmax').text) - 1
+            y2 = float(bbox.find('ymax').text) - 1
+            cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+            img_rois[ix, :] = [cls, x1, y1, x2, y2]
+
+        img_rois = img_rois[np.newaxis, ...]
+        return img_rois
+
+    def load_batch_data(self):
+        """
+        Load data in a batch
+        """
+
+    def load_batch_segmentation(self):
+        """
+        Load segmentations in a batch
+        """
+
+    def load_batch_rois(self):
+        """
+        Load rois in a batch
+        """
+
+    def define_new_batch(self):
+        for batch in [self.list_images[x:x+self.batch_size] for x in xrange(0, len(self.list_images), self.batch_size)]:
+            new_shape = (len(batch),) + tuple([3,480,640])
+            print new_shape
+            #if net.blobs['data'].data.shape != new_shape:
+            #    net.blobs['data'].reshape(*new_shape)
+            #for index, image in enumerate(chunk):
+            #    image_data = transformer.preprocess('data', image)
+            #    net.blobs['data'].data[index] = image_data
+            #output = net.forward()[net.outputs[-1]]
+
+    def check_params(params):
+        required = ['batch_size']
+        for r in required:
+            assert r in params.keys(), 'Params must include {}'.format(r)
+
+class jg_rebatching_layer(caffe.Layer):
+    """ Define a new batch from two blobs :
+    - the feature blobs
+    - the rois blobs
+    """
+
+    def setup(self, bottom, top):
+        """Setup the layer."""
+
+        layer_params = yaml.load(self.param_str_)
+
+        self.strategy = layer_params['strategy']
+        self.batch_size = layer_params['batch_size']
+
+
+
+    def forward(self, bottom, top):
+        """
+        Top order :
+            #data
+        """
+
+        # fill blob with data
+        top[0].data[...] = self.batch_data
+
+
+    def backward(self, top, propagate_down, bottom):
+        bottom[0].diff[...] = 10 * top[0].diff
+        #bottom[0].diff[...] = 10 * top[0].diff
+        #self.loss = top[0].diff
+        pass
+
+
+    def reshape(self, bottom, top):
+        #while !self.batch_ready:
+        #    pass
+
+        # make batch
+        self.batch_data = self.rebatch_features()
+
+        # reshape net
+        top[0].reshape(*self.batch_data.shape)
+
+    def rebatch_features(self):
+        """
+        Rebatch
+        """
+        # get size of feature blob
+        # newbatch has same deepness
+
+        newbatch = np.zeros([256, 3, 480, 640])
+
+        im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[idx],self.image_file_extension))
+        in_ = np.array(im, dtype=np.float32)
+        in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+        in_ = in_.transpose((2,0,1))
+        return newbatch
 
     def load_img_segmentation(self, idx=0):
         """
