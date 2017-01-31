@@ -210,13 +210,15 @@ class jg_input_voc_layer(caffe.Layer):
         in_ = in_.transpose((2,0,1))
         return in_
 
-    def load_img_segmentation(self, idx=0):
+    def load_img_segmentation(self, idx=0,delta=True):
         """
         Load segmentation image as 1 x height x width integer array of label indices.
         The leading singleton dimension is required by the loss.
         """
         im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[idx],self.segmentation_file_extension))
         segmentation = np.array(im, dtype=np.uint8)
+        if delta:
+            segmentation = segmentation - 1
         segmentation = segmentation[np.newaxis, ...]
         return segmentation
 
@@ -312,21 +314,21 @@ class jg_rebatching_layer(caffe.Layer):
 
 
     def backward(self, top, propagate_down, bottom):
-    """
-    RELU BACKWARD :
-      if (propagate_down[0]) {
-        const Dtype* bottom_data = bottom[0]->cpu_data();
-        const Dtype* top_diff = top[0]->cpu_diff();
-        Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
-        const int count = bottom[0]->count();
-        Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
-        for (int i = 0; i < count; ++i) {
-          bottom_diff[i] = top_diff[i] * ((bottom_data[i] > 0)
-              + negative_slope * (bottom_data[i] <= 0));
-        }
-        https://github.com/BVLC/caffe/blob/master/src/caffe/layers/reshape_layer.cpp
-        https://github.com/BVLC/caffe/blob/master/src/caffe/layers/concat_layer.cpp
-    """
+        """
+        RELU BACKWARD :
+          if (propagate_down[0]) {
+            const Dtype* bottom_data = bottom[0]->cpu_data();
+            const Dtype* top_diff = top[0]->cpu_diff();
+            Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
+            const int count = bottom[0]->count();
+            Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
+            for (int i = 0; i < count; ++i) {
+              bottom_diff[i] = top_diff[i] * ((bottom_data[i] > 0)
+                  + negative_slope * (bottom_data[i] <= 0));
+            }
+            https://github.com/BVLC/caffe/blob/master/src/caffe/layers/reshape_layer.cpp
+            https://github.com/BVLC/caffe/blob/master/src/caffe/layers/concat_layer.cpp
+        """
 
         bottom[0].diff[...] = 10 * top[0].diff
         #bottom[0].diff[...] = 10 * top[0].diff
