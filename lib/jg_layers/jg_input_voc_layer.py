@@ -154,6 +154,8 @@ class jg_input_voc_layer(caffe.Layer):
         print "Number of image :",self.nb_images
         print "Separated in", self.num_classes, "classes :", self._class_to_ind
         print "Training with a batch_size of :",self.batch_size
+        first_im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[0],self.image_file_extension))
+        print "First im dim = ", first_im.shape
         #self.define_new_batch()
 
     def forward(self, bottom, top):
