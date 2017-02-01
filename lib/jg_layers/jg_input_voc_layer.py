@@ -198,7 +198,7 @@ class jg_input_voc_layer(caffe.Layer):
         #top[1].reshape(1, *self.batch_segmentation)
         #top[2].reshape(1, *self.batch_rois)
 
-    def load_img_data(self, idx=0):
+    def load_img_data(self, idx):
         """
         Load input image and preprocess for Caffe:
         - cast to float
@@ -213,13 +213,12 @@ class jg_input_voc_layer(caffe.Layer):
         #in_ -= self.mean_bgr
             in_ = in_.transpose((2,0,1))
         elif len(in_.shape)==2:
-            in_ = in_.transpose((0,1))
             in_ = in_[np.newaxis, ...]
         else:
             print "Error : shape not accepted."
         return in_
 
-    def load_img_segmentation(self, idx=0,delta=False):
+    def load_img_segmentation(self, idx,delta=False):
         """
         Load segmentation image as 1 x height x width integer array of label indices.
         The leading singleton dimension is required by the loss.
@@ -295,6 +294,176 @@ class jg_input_voc_layer(caffe.Layer):
         required = ['batch_size']
         for r in required:
             assert r in params.keys(), 'Params must include {}'.format(r)
+
+class jg_input_seg_fusion_layer(caffe.Layer):
+    """works with only on image for now by batch"""
+    #improvement here : https://github.com/BVLC/caffe/blob/master/examples/pycaffe/layers/pascal_multilabel_datalayers.py
+
+    def get_classes(self):
+        with open(self.classes_file_path, 'r') as fp:
+            for line in fp:
+                if line[0]=='#' or line[0]=='\n':
+                    pass
+                else:
+                    self.classes.append(line[:-1])
+        #print "Classes :", self.classes
+
+    def setup(self, bottom, top):
+        """Setup the layer."""
+
+
+        # tops: check configuration
+        if len(top) != 3:
+            raise Exception("Need to define {} tops for all outputs.")
+        # data layers have no bottoms
+        if len(bottom) != 0:
+            raise Exception("Do not define a bottom.")
+
+        layer_params = yaml.load(self.param_str_)
+
+        self.iter_counter = 0  # setup a counter for iteration
+
+        self.unique_key = layer_params['unique_key']
+        self.batch_size = layer_params['batch_size']
+        self.width = layer_params['width']
+        self.height = layer_params['height']
+
+        self.images_folder0 = layer_params['images_folder0']
+        self.image_file_extension0 = layer_params['image_file_extension0']
+
+        self.images_folder1 = layer_params['images_folder1']
+        self.image_file_extension1 = layer_params['image_file_extension1']
+
+        self.annotations_folder = layer_params['annotations_folder']
+        self.annotation_file_extension = layer_params['annotation_file_extension']
+
+        self.segmentations_folder = layer_params['segmentations_folder']
+        self.segmentation_file_extension = layer_params['segmentation_file_extension']
+
+        self.set_file_path = layer_params['set_file_path']
+        self.classes_file_path = layer_params['classes_file_path']
+        self.cache_folder = layer_params['cache_folder']
+        if not os.path.isdir(self.cache_folder):
+            os.mkdir(self.cache_folder)
+
+        # shuffling at each epoch
+        self.shuffle = layer_params['shuffle']
+
+
+        self.recorded_loss = [] #todo in backward prop keep values of loss to get hard examples
+
+        self.max_width = layer_params['max_width']
+        self.max_height = layer_params['max_height']
+
+        self.classes = []
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+
+        self.batch_data0 = np.zeros((1,3,320,240), dtype=np.float32)
+        self.batch_data1 = np.zeros((1,3,320,240), dtype=np.float32)
+        self.batch_segmentation = np.zeros((1,3,320,240), dtype=np.uint8)
+        self.batch_ready = False
+
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        print "Number of image :",self.nb_images
+        print "Separated in", self.num_classes, "classes :", self._class_to_ind
+        print "Training with a batch_size of :",self.batch_size
+        im = Image.open('{}{}.{}'.format(self.images_folder0, self.list_images[0],self.image_file_extension))
+        first_im = np.array(im, dtype=np.float32)
+        print "First im dim = ", first_im.shape
+        #self.define_new_batch()
+
+    def forward(self, bottom, top):
+        """
+        Top order :
+            #data
+            #segmentation
+            #rois
+        """
+
+        # fill blob with data
+        top[0].data[...] = self.batch_data0
+        top[1].data[...] = self.batch_data1
+        top[2].data[...] = self.batch_segmentation
+
+        # Update number of forward pass done
+        self.iter_counter += 1
+        self.iter_counter=self.iter_counter%self.nb_images
+
+    def backward(self, top, propagate_down, bottom):
+        #bottom[0].diff[...] = 10 * top[0].diff
+        #self.loss = top[0].diff
+        pass
+
+    def reshape(self, bottom, top):
+        #while !self.batch_ready:
+        #    pass
+
+        # make batch
+        self.batch_data0 = self.load_img_data0(self.iter_counter)[np.newaxis, ...]
+        self.batch_data1 = self.load_img_data1(self.iter_counter)[np.newaxis, ...]
+        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
+
+        # reshape net
+        top[0].reshape(*self.batch_data0.shape)
+        top[1].reshape(*self.batch_data1.shape)
+        top[2].reshape(*self.batch_segmentation.shape)
+
+    def load_img_data0(self, idx):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        im = Image.open('{}{}.{}'.format(self.images_folder0, self.list_images[idx],self.image_file_extension0))
+        in_ = np.array(im, dtype=np.float32)
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
+        return in_
+
+    def load_img_data1(self, idx):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        im = Image.open('{}{}.{}'.format(self.images_folder1, self.list_images[idx],self.image_file_extension1))
+        in_ = np.array(im, dtype=np.float32)
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
+        return in_
+
+    def load_img_segmentation(self, idx,delta=False):
+        """
+        Load segmentation image as 1 x height x width integer array of label indices.
+        The leading singleton dimension is required by the loss.
+        """
+        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[idx],self.segmentation_file_extension))
+        segmentation = np.array(im, dtype=np.uint8)
+        if delta:
+            segmentation = segmentation - 1
+        segmentation = segmentation[np.newaxis, ...]
+        return segmentation
+
 
 class jg_rebatching_layer(caffe.Layer):
     """ Define a new batch from two blobs :
