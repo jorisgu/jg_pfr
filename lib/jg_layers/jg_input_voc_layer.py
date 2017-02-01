@@ -205,12 +205,18 @@ class jg_input_voc_layer(caffe.Layer):
         """
         im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[idx],self.image_file_extension))
         in_ = np.array(im, dtype=np.float32)
-        in_ = in_[:,:,::-1]
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
         #in_ -= self.mean_bgr
-        in_ = in_.transpose((2,0,1))
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_.transpose((0,1))
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
         return in_
 
-    def load_img_segmentation(self, idx=0,delta=True):
+    def load_img_segmentation(self, idx=0,delta=False):
         """
         Load segmentation image as 1 x height x width integer array of label indices.
         The leading singleton dimension is required by the loss.

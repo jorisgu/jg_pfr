@@ -2,14 +2,13 @@
 
 import caffe
 
-#PROTOTXT_INPUT = "VGG_CNN_S_deploy.prototxt"
-#WEIGHTS_INPUT = "VGG_CNN_S.caffemodel"
+PROTOTXT_INPUT = "/data/workspace/caffemodels/vgg16/nyud fcn 32s color test.prototxt"
+#WEIGHTS_INPUT = "/data/workspace/caffemodels/vgg16/nyud-fcn32s-color-heavy.caffemodel"
 
-PROTOTXT_INPUT = "/c16/THESE.JORIS/caffemodels/vgg16/nyud fcn 32s color test.prototxt"
-WEIGHTS_INPUT = "/c16/THESE.JORIS/caffemodels/vgg16/fcn32s-heavy-nyud-color.caffemodel"
+WEIGHTS_INPUT = "/data/workspace/caffemodels/vgg16/nyud-fcn32s-hha-heavy.caffemodel"
 
-PROTOTXT_OUTPUT = "/c16/THESE.JORIS/caffemodels/vgg16/sunrgbd37/deploy.prototxt"
-WEIGHTS_OUTPUT = "/c16/THESE.JORIS/caffemodels/vgg16/sunrgbd37/fcn32s-heavy-nyud-color-37.caffemodel"
+PROTOTXT_OUTPUT = "/data/workspace/caffemodels/vgg16/sunrgbd37/deploy.prototxt"
+WEIGHTS_OUTPUT = "/data/workspace/caffemodels/vgg16/sunrgbd37/fcn32s-heavy-nyud-hha-37.caffemodel"
 
 def generate_fcn():
 
@@ -24,8 +23,18 @@ def generate_fcn():
     print "Transplanting parameters..."
     transplant(outputNet, inputNet)
 
+    new_layer='upscore37'
+    layer='upscore'
+    dim=37
+    print "Keeping bilinear weights..."
+    bilin(outputNet,new_layer, inputNet,layer,dim)
+
     print "Saving output model to %s " % WEIGHTS_OUTPUT
     outputNet.save(WEIGHTS_OUTPUT)
+
+def bilin(new_net,new_layer, net, layer, dim):
+    new_net.params[new_layer][0].data[...]=net.params[layer][0].data[0:dim,0:dim]
+
 
 
 def transplant(new_net, net, suffix=''):
