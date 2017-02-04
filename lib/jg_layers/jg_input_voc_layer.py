@@ -464,6 +464,167 @@ class jg_input_seg_fusion_layer(caffe.Layer):
         segmentation = segmentation[np.newaxis, ...]
         return segmentation
 
+class jg_input_segmentation_layer(caffe.Layer):
+    """works with only on image for now by batch"""
+
+    def get_classes(self):
+        with open(self.classes_file_path, 'r') as fp:
+            for line in fp:
+                if line[0]=='#' or line[0]=='\n':
+                    pass
+                else:
+                    self.classes.append(line[:-1])
+
+    def setup(self, bottom, top):
+        """Setup the layer."""
+
+
+        # tops: check configuration
+        if len(top) != 2:
+            raise Exception("Need to define {} tops for all outputs.")
+        # data layers have no bottoms
+        if len(bottom) != 0:
+            raise Exception("Do not define a bottom.")
+
+        layer_params = yaml.load(self.param_str_)
+
+        self.iter_counter = 0  # setup a counter for iteration
+
+        self.dataset_folder = layer_params['dataset_folder']
+        self.encoding = layer_params['encoding']
+        self.images_folder = self.dataset_folder+self.encoding+'/'
+        self.image_file_extension = layer_params['image_file_extension']
+
+        self.segmentations_folder = layer_params['segmentations_folder']
+        self.segmentation_file_extension = layer_params['segmentation_file_extension']
+
+        self.set_file_path = layer_params['set_file_path']
+        self.classes_file_path = layer_params['classes_file_path']
+
+        # classes
+        self.classes = []
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+        # images
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        print "Number of image :",self.nb_images
+        print "Separated in", self.num_classes, "classes :", self._class_to_ind
+
+        self.batch_data = np.zeros((1,3,400,400), dtype=np.float32)
+        self.batch_segmentation = np.zeros((1,3,400,400), dtype=np.uint8)
+
+        # shuffling at each epoch
+        self.shuffle = layer_params['shuffle']
+        self.permutation = []
+        self.countEpoch = 0
+        if self.shuffle:
+            print "Shuffling activated."
+            self.permutation = np.random.permutation(self.nb_images)
+        else:
+            self.permutation = range(self.nb_images)
+
+        # luminosity
+        if self.encoding=='luminosity':
+            print "Special training case : various luminosity"
+            subDatasetLuminosity = range(10,101,10)
+            self.subDatasets = {}
+            for i,perc in enumerate(subDatasetLuminosity):
+                    self.subDatasets[perc] = 'rgb_i_{}_8bits'.format(perc)
+
+
+    def forward(self, bottom, top):
+        """
+        Top order :
+            #data
+            #segmentation
+        """
+
+        # fill blob with data
+        top[0].data[...] = self.batch_data
+        top[1].data[...] = self.batch_segmentation
+
+        # Update number of forward pass done
+        self.iter_counter += 1
+        if self.iter_counter>=self.nb_images:
+            self.countEpoch += 1
+            print "New epoch [total epoch :", self.countEpoch,"]."
+            self.iter_counter=0
+            if self.shuffle:
+                print "Reshuffling !"
+                self.permutation = np.random.permutation(self.nb_images)
+
+    def backward(self, top, propagate_down, bottom):
+        pass
+
+    def reshape(self, bottom, top):
+        # make batch
+        if self.encoding=='luminosity':
+            self.batch_data = self.load_img_data_luminosity(self.iter_counter)[np.newaxis, ...]
+        else:
+            self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
+
+        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
+
+        # reshape net
+        top[0].reshape(*self.batch_data.shape)
+        top[1].reshape(*self.batch_segmentation.shape)
+
+    def load_img_data(self, idx):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+        in_ = np.array(im, dtype=np.float32)
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
+        return in_
+
+    def load_img_data_luminosity(self, idx):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        self.images_folder = self.dataset_folder+'/'+self.subDatasets[(idx%10+1)*10]+'/'
+        im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+        in_ = np.array(im, dtype=np.float32)
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
+        return in_
+
+    def load_img_segmentation(self, idx,delta=False):
+        """
+        Load segmentation image as 1 x height x width integer array of label indices.
+        The leading singleton dimension is required by the loss.
+        """
+        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[idx]],self.segmentation_file_extension))
+        segmentation = np.array(im, dtype=np.uint8)
+        if delta:
+            segmentation = segmentation - 1
+        segmentation = segmentation[np.newaxis, ...]
+        return segmentation
+
 
 class jg_rebatching_layer(caffe.Layer):
     """ Define a new batch from two blobs :
