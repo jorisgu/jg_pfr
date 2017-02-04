@@ -20,7 +20,7 @@ sets_dir=$1/data/sets/$3/
 for stage in 'trainvalGupta' 'testGupta' 'trainGupta' 'valGupta'
 do
   echo "Processing ${stage} set :"
-  for encoding in 'd_raw_cubehelix_8bits' 'd_raw_histeqBack_cubehelix_8bits' 'd_raw_histeqFront_cubehelix_8bits' 'd_raw_histeqRandom_cubehelix_8bits' 'd_raw_jet_8bits' 'd_raw_HHA_8bits' 'd_raw_histeqBack_jet_8bits' 'd_raw_histeqFront_jet_8bits' 'd_raw_histeqRandom_jet_8bits' 'labels_segmentation_37d'
+  for encoding in 'd_raw_histeqBack_cubehelix_8bits' 'd_raw_histeqRandom_cubehelix_8bits' 'labels_segmentation_37' 'rgb_i_20_8bits' 'rgb_i_60_8bits' 'd_raw_cubehelix_8bits' 'd_raw_histeqBack_jet_8bits' 'd_raw_histeqRandom_jet_8bits' 'labels_segmentation_37d' 'rgb_i_30_8bits' 'rgb_i_70_8bits' 'd_raw_DNA_8bits' 'd_raw_histeqFront_cubehelix_8bits' 'd_raw_jet_8bits' 'rgb_i_100_8bits' 'rgb_i_40_8bits' 'rgb_i_80_8bits' 'd_raw_HHA_8bits' 'd_raw_histeqFront_jet_8bits' 'rgb_i_10_8bits' 'rgb_i_50_8bits' 'rgb_i_90_8bits'
     do
   	echo "Encoding : ${encoding}"
       imageset_file=${sets_dir}${stage}.txt
