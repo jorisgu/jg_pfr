@@ -9,8 +9,8 @@ if [ "$#" -ne 3 ]; then
     exit 1
 fi
 
-input_dataset_dir=$1/data/
-#input_dataset_dir=$1/data_spreadout/
+#input_dataset_dir=$1/data/
+input_dataset_dir=$1/data_spreadout/
 output_dataset_dir=$1/$2/
 sets_dir=$1/data/sets/$3/
 
@@ -20,7 +20,7 @@ sets_dir=$1/data/sets/$3/
 for stage in 'trainvalGupta' 'testGupta' 'trainGupta' 'valGupta'
 do
   echo "Processing ${stage} set :"
-  for encoding in 'd_raw_histeqBack_cubehelix_8bits' 'd_raw_histeqRandom_cubehelix_8bits' 'labels_segmentation_37' 'rgb_i_20_8bits' 'rgb_i_60_8bits' 'd_raw_cubehelix_8bits' 'd_raw_histeqBack_jet_8bits' 'd_raw_histeqRandom_jet_8bits' 'labels_segmentation_37d' 'rgb_i_30_8bits' 'rgb_i_70_8bits' 'd_raw_DNA_8bits' 'd_raw_histeqFront_cubehelix_8bits' 'd_raw_jet_8bits' 'rgb_i_100_8bits' 'rgb_i_40_8bits' 'rgb_i_80_8bits' 'd_raw_HHA_8bits' 'd_raw_histeqFront_jet_8bits' 'rgb_i_10_8bits' 'rgb_i_50_8bits' 'rgb_i_90_8bits'
+  for encoding in 'd_raw_histeqBack_cubehelix_8bits' 'd_raw_histeqRandom_cubehelix_8bits' 'd_raw_cubehelix_8bits' 'd_raw_histeqBack_jet_8bits' 'd_raw_histeqRandom_jet_8bits' 'd_raw_histeqFront_cubehelix_8bits' 'd_raw_jet_8bits' 'd_raw_histeqFront_jet_8bits'
     do
   	echo "Encoding : ${encoding}"
       imageset_file=${sets_dir}${stage}.txt
@@ -30,8 +30,8 @@ do
 
       cd ${output_image_dir}
       while read -r file; do
-          ln -sf "../../../data/${encoding}/${file}.png" .;
-          #ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
+          #ln -sf "../../../data/${encoding}/${file}.png" .;
+          ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
       done < ${imageset_file}
     done
 done
