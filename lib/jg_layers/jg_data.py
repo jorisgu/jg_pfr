@@ -483,6 +483,7 @@ class jg_input_segmentation_layer(caffe.Layer):
     """works with only on image for now by batch"""
 
     def get_classes(self):
+        self.classes = []
         with open(self.classes_file_path, 'r') as fp:
             for line in fp:
                 if line[0]=='#' or line[0]=='\n':
@@ -505,9 +506,7 @@ class jg_input_segmentation_layer(caffe.Layer):
 
         self.iter_counter = 0  # setup a counter for iteration
 
-        self.dataset_folder = layer_params['dataset_folder']
-        self.encoding = layer_params['encoding']
-        self.images_folder = self.dataset_folder+self.encoding+'/'
+        self.images_folder = layer_params['images_folder']
         self.image_file_extension = layer_params['image_file_extension']
 
         self.segmentations_folder = layer_params['segmentations_folder']
@@ -541,13 +540,20 @@ class jg_input_segmentation_layer(caffe.Layer):
         else:
             self.permutation = range(self.nb_images)
 
-        # luminosity
-        if self.encoding=='luminosity':
-            print "Special training case : various luminosity"
-            subDatasetLuminosity = range(10,101,10)
-            self.subDatasets = {}
-            for i,perc in enumerate(subDatasetLuminosity):
-                    self.subDatasets[perc] = 'rgb_i_{}_8bits'.format(perc)
+    def update(self,newParams):
+        for key in newParams.keys():
+            setattr(self, key, newParams[key])
+
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+        # images
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        print "Number of image :",self.nb_images
+        print "Separated in", self.num_classes, "classes :", self._class_to_ind
+
 
     def forward(self, bottom, top):
         """
@@ -575,11 +581,7 @@ class jg_input_segmentation_layer(caffe.Layer):
 
     def reshape(self, bottom, top):
         # make batch
-        if self.encoding=='luminosity':
-            self.batch_data = self.load_img_data_luminosity(self.iter_counter)[np.newaxis, ...]
-        else:
-            self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
-
+        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
         self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
 
         # reshape net
@@ -594,27 +596,6 @@ class jg_input_segmentation_layer(caffe.Layer):
         - subtract mean
         - transpose to channel x height x width order
         """
-        im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
-        in_ = np.array(im, dtype=np.float32)
-        if len(in_.shape)==3:
-            in_ = in_[:,:,::-1]
-        #in_ -= self.mean_bgr
-            in_ = in_.transpose((2,0,1))
-        elif len(in_.shape)==2:
-            in_ = in_[np.newaxis, ...]
-        else:
-            print "Error : shape not accepted."
-        return in_
-
-    def load_img_data_luminosity(self, idx):
-        """
-        Load input image and preprocess for Caffe:
-        - cast to float
-        - switch channels RGB -> BGR
-        - subtract mean
-        - transpose to channel x height x width order
-        """
-        self.images_folder = self.dataset_folder+'/'+self.subDatasets[(idx%10+1)*10]+'/'
         im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
         in_ = np.array(im, dtype=np.float32)
         if len(in_.shape)==3:

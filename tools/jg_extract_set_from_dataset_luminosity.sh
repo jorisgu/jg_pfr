@@ -10,7 +10,6 @@ if [ "$#" -ne 3 ]; then
 fi
 
 input_dataset_dir=$1/data/
-#input_dataset_dir=$1/data_spreadout/
 output_dataset_dir=$1/$2/
 sets_dir=$1/data/sets/$3/
 
@@ -20,17 +19,23 @@ sets_dir=$1/data/sets/$3/
 for stage in 'trainvalGupta' 'testGupta' 'trainGupta' 'valGupta'
 do
   echo "Processing ${stage} set :"
-  for encoding in 'd_raw_histeqBack_8bits' 'd_raw_histeqFront_8bits' 'd_raw_histeqRandom_8bits' 'd_raw_normal_8bits'
+  #for luminosity in '10' '20' '30' '40' '50' '60' '70' '80' '90' '100'
+  #for luminosity in '60' '70' '80' '90' '100'
+  for luminosity in '80' '90' '100'
     do
-  	echo "Encoding : ${encoding}"
+  	echo "Luminosity : ${luminosity}"
       imageset_file=${sets_dir}${stage}.txt
-      output_image_dir=${output_dataset_dir}${encoding}/${stage}/
+      output_image_dir=${output_dataset_dir}rgb_i_range_80-10-100/${stage}/
+      output_label_dir=${output_dataset_dir}labels_segmentation_37d_range_80-10-100/${stage}/
       mkdir -p ${output_image_dir}
+      mkdir -p ${output_label_dir}
 
-      cd ${output_image_dir}
+
       while read -r file; do
-          ln -sf "../../../data/${encoding}/${file}.png" .;
-          #ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
+          cd ${output_image_dir}
+          ln -sf "../../../data/rgb_i_${luminosity}_8bits/${file}.png" "./${file}_${luminosity}.png";
+          cd ${output_label_dir}
+          ln -sf "../../../data/labels_segmentation_37d/${file}.png" "./${file}_${luminosity}.png";
       done < ${imageset_file}
     done
 done
