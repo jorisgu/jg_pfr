@@ -9,8 +9,8 @@ if [ "$#" -ne 3 ]; then
     exit 1
 fi
 
-#input_dataset_dir=$1/data/
-input_dataset_dir=$1/data_spreadout/
+input_dataset_dir=$1/data/
+#input_dataset_dir=$1/data_spreadout/
 output_dataset_dir=$1/$2/
 sets_dir=$1/data/sets/$3/
 
@@ -20,7 +20,7 @@ sets_dir=$1/data/sets/$3/
 for stage in 'trainvalGupta' 'testGupta' 'trainGupta' 'valGupta'
 do
   echo "Processing ${stage} set :"
-  for encoding in 'd_raw_histeqBack_8bits' 'd_raw_histeqFront_8bits' 'd_raw_histeqRandom_8bits' 'd_raw_normal_8bits'
+  for encoding in 'd_raw_DEA_8bits' 'd_raw_DHA_8bits' 'd_raw_HES_8bits' 'd_raw_PLDI_8bits'
     do
   	echo "Encoding : ${encoding}"
       imageset_file=${sets_dir}${stage}.txt
@@ -29,8 +29,8 @@ do
 
       cd ${output_image_dir}
       while read -r file; do
-          #ln -sf "../../../data/${encoding}/${file}.png" .;
-          ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
+          ln -sf "../../../data/${encoding}/${file}.png" .;
+          #ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
       done < ${imageset_file}
     done
 done

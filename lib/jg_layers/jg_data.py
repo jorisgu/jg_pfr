@@ -551,8 +551,8 @@ class jg_input_segmentation_layer(caffe.Layer):
         # images
         self.list_images = open(self.set_file_path, 'r').read().splitlines()
         self.nb_images = len(self.list_images)
-        print "Number of image :",self.nb_images
-        print "Separated in", self.num_classes, "classes :", self._class_to_ind
+        #print "Number of image :",self.nb_images
+        #print "Separated in", self.num_classes, "classes :", self._class_to_ind
 
 
     def forward(self, bottom, top):
