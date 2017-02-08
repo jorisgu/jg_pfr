@@ -310,25 +310,24 @@ class jg_input_voc_layer(caffe.Layer):
         for r in required:
             assert r in params.keys(), 'Params must include {}'.format(r)
 
-class jg_input_seg_fusion_layer(caffe.Layer):
+class jg_input_test_layer(caffe.Layer):
     """works with only on image for now by batch"""
-    #improvement here : https://github.com/BVLC/caffe/blob/master/examples/pycaffe/layers/pascal_multilabel_datalayers.py
 
     def get_classes(self):
+        self.classes = []
         with open(self.classes_file_path, 'r') as fp:
             for line in fp:
                 if line[0]=='#' or line[0]=='\n':
                     pass
                 else:
                     self.classes.append(line[:-1])
-        #print "Classes :", self.classes
 
     def setup(self, bottom, top):
         """Setup the layer."""
 
 
         # tops: check configuration
-        if len(top) != 3:
+        if len(top) != 1:
             raise Exception("Need to define {} tops for all outputs.")
         # data layers have no bottoms
         if len(bottom) != 0:
@@ -338,96 +337,89 @@ class jg_input_seg_fusion_layer(caffe.Layer):
 
         self.iter_counter = 0  # setup a counter for iteration
 
-        self.unique_key = layer_params['unique_key']
-        self.batch_size = layer_params['batch_size']
-        self.width = layer_params['width']
-        self.height = layer_params['height']
-
-        self.images_folder0 = layer_params['images_folder0']
-        self.image_file_extension0 = layer_params['image_file_extension0']
-
-        self.images_folder1 = layer_params['images_folder1']
-        self.image_file_extension1 = layer_params['image_file_extension1']
-
-        self.annotations_folder = layer_params['annotations_folder']
-        self.annotation_file_extension = layer_params['annotation_file_extension']
+        self.images_folder = layer_params['images_folder']
+        self.image_file_extension = layer_params['image_file_extension']
 
         self.segmentations_folder = layer_params['segmentations_folder']
         self.segmentation_file_extension = layer_params['segmentation_file_extension']
 
         self.set_file_path = layer_params['set_file_path']
         self.classes_file_path = layer_params['classes_file_path']
-        self.cache_folder = layer_params['cache_folder']
-        if not os.path.isdir(self.cache_folder):
-            os.mkdir(self.cache_folder)
 
-        # shuffling at each epoch
-        self.shuffle = layer_params['shuffle']
-
-
-        self.recorded_loss = [] #todo in backward prop keep values of loss to get hard examples
-
-        self.max_width = layer_params['max_width']
-        self.max_height = layer_params['max_height']
-
+        # classes
         self.classes = []
         self.get_classes()
         self.num_classes = len(self.classes)
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
 
-
-        self.batch_data0 = np.zeros((1,3,320,240), dtype=np.float32)
-        self.batch_data1 = np.zeros((1,3,320,240), dtype=np.float32)
-        self.batch_segmentation = np.zeros((1,3,320,240), dtype=np.uint8)
-        self.batch_ready = False
-
+        # images
         self.list_images = open(self.set_file_path, 'r').read().splitlines()
         self.nb_images = len(self.list_images)
         print "Number of image :",self.nb_images
         print "Separated in", self.num_classes, "classes :", self._class_to_ind
-        print "Training with a batch_size of :",self.batch_size
-        im = Image.open('{}{}.{}'.format(self.images_folder0, self.list_images[0],self.image_file_extension))
-        first_im = np.array(im, dtype=np.float32)
-        print "First im dim = ", first_im.shape
-        #self.define_new_batch()
+
+        self.batch_data = np.zeros((1,3,400,400), dtype=np.float32)
+        self.batch_segmentation = np.zeros((1,3,400,400), dtype=np.uint8)
+
+        # shuffling at each epoch
+        self.shuffle = layer_params['shuffle']
+        self.permutation = []
+        self.countEpoch = 0
+        if self.shuffle:
+            print "Shuffling activated."
+            self.permutation = np.random.permutation(self.nb_images)
+        else:
+            self.permutation = range(self.nb_images)
+
+    def update(self,newParams):
+        for key in newParams.keys():
+            setattr(self, key, newParams[key])
+
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+        # images
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        #print "Number of image :",self.nb_images
+        #print "Separated in", self.num_classes, "classes :", self._class_to_ind
+
 
     def forward(self, bottom, top):
         """
         Top order :
             #data
             #segmentation
-            #rois
         """
 
         # fill blob with data
-        top[0].data[...] = self.batch_data0
-        top[1].data[...] = self.batch_data1
-        top[2].data[...] = self.batch_segmentation
+        top[0].data[...] = self.batch_data
+        #top[1].data[...] = self.batch_segmentation
 
         # Update number of forward pass done
         self.iter_counter += 1
-        self.iter_counter=self.iter_counter%self.nb_images
+        if self.iter_counter>=self.nb_images:
+            self.countEpoch += 1
+            print "New epoch [total epoch :", self.countEpoch,"]."
+            self.iter_counter=0
+            if self.shuffle:
+                print "Reshuffling !"
+                self.permutation = np.random.permutation(self.nb_images)
 
     def backward(self, top, propagate_down, bottom):
-        #bottom[0].diff[...] = 10 * top[0].diff
-        #self.loss = top[0].diff
         pass
 
     def reshape(self, bottom, top):
-        #while !self.batch_ready:
-        #    pass
-
         # make batch
-        self.batch_data0 = self.load_img_data0(self.iter_counter)[np.newaxis, ...]
-        self.batch_data1 = self.load_img_data1(self.iter_counter)[np.newaxis, ...]
-        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
+        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
+        #self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
 
         # reshape net
-        top[0].reshape(*self.batch_data0.shape)
-        top[1].reshape(*self.batch_data1.shape)
-        top[2].reshape(*self.batch_segmentation.shape)
+        top[0].reshape(*self.batch_data.shape)
+        #top[1].reshape(*self.batch_segmentation.shape)
 
-    def load_img_data0(self, idx):
+    def load_img_data(self, idx):
         """
         Load input image and preprocess for Caffe:
         - cast to float
@@ -435,27 +427,7 @@ class jg_input_seg_fusion_layer(caffe.Layer):
         - subtract mean
         - transpose to channel x height x width order
         """
-        im = Image.open('{}{}.{}'.format(self.images_folder0, self.list_images[idx],self.image_file_extension0))
-        in_ = np.array(im, dtype=np.float32)
-        if len(in_.shape)==3:
-            in_ = in_[:,:,::-1]
-        #in_ -= self.mean_bgr
-            in_ = in_.transpose((2,0,1))
-        elif len(in_.shape)==2:
-            in_ = in_[np.newaxis, ...]
-        else:
-            print "Error : shape not accepted."
-        return in_
-
-    def load_img_data1(self, idx):
-        """
-        Load input image and preprocess for Caffe:
-        - cast to float
-        - switch channels RGB -> BGR
-        - subtract mean
-        - transpose to channel x height x width order
-        """
-        im = Image.open('{}{}.{}'.format(self.images_folder1, self.list_images[idx],self.image_file_extension1))
+        im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
         in_ = np.array(im, dtype=np.float32)
         if len(in_.shape)==3:
             in_ = in_[:,:,::-1]
@@ -472,7 +444,157 @@ class jg_input_seg_fusion_layer(caffe.Layer):
         Load segmentation image as 1 x height x width integer array of label indices.
         The leading singleton dimension is required by the loss.
         """
-        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[idx],self.segmentation_file_extension))
+        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[idx]],self.segmentation_file_extension))
+        segmentation = np.array(im, dtype=np.uint8)
+        if delta:
+            segmentation = segmentation - 1
+        segmentation = segmentation[np.newaxis, ...]
+        return segmentation
+
+class jg_input_fuse_segmentation_layer(caffe.Layer):
+    """works with only on image for now by batch"""
+
+    def get_classes(self):
+        self.classes = []
+        with open(self.classes_file_path, 'r') as fp:
+            for line in fp:
+                if line[0]=='#' or line[0]=='\n':
+                    pass
+                else:
+                    self.classes.append(line[:-1])
+
+    def setup(self, bottom, top):
+        """Setup the layer."""
+
+
+        # tops: check configuration
+        if len(top) != 3:
+            raise Exception("Need to define {} tops for all outputs.")
+        # data layers have no bottoms
+        if len(bottom) != 0:
+            raise Exception("Do not define a bottom.")
+
+        layer_params = yaml.load(self.param_str_)
+
+        self.iter_counter = 0  # setup a counter for iteration
+
+        self.images_folder = layer_params['images_folder']
+        self.image_file_extension = layer_params['image_file_extension']
+        self.images_folder_ = layer_params['images_folder_']
+        self.image_file_extension_ = layer_params['image_file_extension_']
+
+        self.segmentations_folder = layer_params['segmentations_folder']
+        self.segmentation_file_extension = layer_params['segmentation_file_extension']
+
+        self.set_file_path = layer_params['set_file_path']
+        self.classes_file_path = layer_params['classes_file_path']
+
+        # classes
+        self.classes = []
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+        # images
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        print "Number of image :",self.nb_images
+        print "Separated in", self.num_classes, "classes :", self._class_to_ind
+
+        self.batch_data = np.zeros((1,3,400,400), dtype=np.float32)
+        self.batch_data_ = np.zeros((1,3,400,400), dtype=np.float32)
+        self.batch_segmentation = np.zeros((1,3,400,400), dtype=np.uint8)
+
+        # shuffling at each epoch
+        self.shuffle = layer_params['shuffle']
+        self.permutation = []
+        self.countEpoch = 0
+        if self.shuffle:
+            print "Shuffling activated."
+            self.permutation = np.random.permutation(self.nb_images)
+        else:
+            self.permutation = range(self.nb_images)
+
+    def update(self,newParams):
+        for key in newParams.keys():
+            setattr(self, key, newParams[key])
+
+        self.get_classes()
+        self.num_classes = len(self.classes)
+        self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+
+        # images
+        self.list_images = open(self.set_file_path, 'r').read().splitlines()
+        self.nb_images = len(self.list_images)
+        #print "Number of image :",self.nb_images
+        #print "Separated in", self.num_classes, "classes :", self._class_to_ind
+
+    def forward(self, bottom, top):
+        """
+        Top order :
+            #data
+            #data_
+            #segmentation
+        """
+
+        # fill blob with data
+        top[0].data[...] = self.batch_data
+        top[1].data[...] = self.batch_data_
+        top[2].data[...] = self.batch_segmentation
+
+        # Update number of forward pass done
+        self.iter_counter += 1
+        if self.iter_counter>=self.nb_images:
+            self.countEpoch += 1
+            print "New epoch [total epoch :", self.countEpoch,"]."
+            self.iter_counter=0
+            if self.shuffle:
+                print "Reshuffling !"
+                self.permutation = np.random.permutation(self.nb_images)
+
+    def backward(self, top, propagate_down, bottom):
+        pass
+
+    def reshape(self, bottom, top):
+        # make batch
+        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
+        self.batch_data_ = self.load_img_data(self.iter_counter,True)[np.newaxis, ...]
+        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
+
+        # reshape net
+        top[0].reshape(*self.batch_data.shape)
+        top[1].reshape(*self.batch_data_.shape)
+        top[2].reshape(*self.batch_segmentation.shape)
+
+    def load_img_data(self, idx,data_=False):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        if data_:
+            im = Image.open('{}{}.{}'.format(self.images_folder_, self.list_images[self.permutation[idx]],self.image_file_extension_))
+        else:
+            im = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+        in_ = np.array(im, dtype=np.float32)
+        if len(in_.shape)==3:
+            in_ = in_[:,:,::-1]
+        #in_ -= self.mean_bgr
+            in_ = in_.transpose((2,0,1))
+        elif len(in_.shape)==2:
+            in_ = in_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted."
+        return in_
+
+    def load_img_segmentation(self, idx,delta=False):
+        """
+        Load segmentation image as 1 x height x width integer array of label indices.
+        The leading singleton dimension is required by the loss.
+        """
+        im = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[idx]],self.segmentation_file_extension))
         segmentation = np.array(im, dtype=np.uint8)
         if delta:
             segmentation = segmentation - 1
