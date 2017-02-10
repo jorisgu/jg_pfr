@@ -6,7 +6,8 @@ from PIL import Image
 import cPickle
 import xml.etree.ElementTree as ET
 import sklearn.metrics #for confusion matrix
-
+import math #for view generation
+#import time
 #import scipy.io
 #from multiprocessing import Process, Queue
 
@@ -18,69 +19,40 @@ class dataset:
     - give a batch on demand (with a unique id making it reproductible)
     """
 
-    def prepareCrops(img_w, img_h, overlap_max=0.5, crop_size=100):
-
-        tresh_h = max(3,int(0.10*crop_size))
-        delta = img_h
-        smax_h = crop_size
-        smin_h = 0
-        #for s from smax to smin:
-        n_h = -1
-        s_h = -1
-        d_h = -1
-        for s in range(smax_h,smin_h,-1):
-            n_step_max = int(float((img_h-crop_size))/s+1)
-            for n in range(n_step_max,0,-1):
-                delta = int(float(img_h - crop_size - s*(n-1)) /2 + 0.5)
-                if delta<tresh_h:
-                    n_h = n
-                    s_h = s
-                    d_h = delta
-                    #print "H",img_h,"h",crop_size,"s",s,"n",n,"delta",delta, "tresh",tresh_h
-                    #print "h + (n-1)*s+2d =",crop_size + (n_h-1)*s_h+2*d_h
-                    break
-            if delta<tresh_h:
-                break
-
-
-        tresh_w = max(3,int(0.10*crop_size))
-        delta = img_w
-        smax_w = crop_size
-        smin_w = 0
-        #for s from smax to smin:
-        n_w = -1
-        s_w = -1
-        d_w = -1
-        for s in range(smax_w,smin_w,-1):
-            n_step_max = int(float((img_w-crop_size))/s+1)
-            for n in range(n_step_max,0,-1):
-                delta = int(float(img_w - crop_size - s*(n-1)) /2 + 0.5)
-                if delta<tresh_w:
-                    n_w = n
-                    s_w = s
-                    d_w = delta
-                    #print "H",img_h,"h",crop_size,"s",s,"n",n,"delta",delta, "tresh",tresh_h
-                    #print "w + (n-1)*s+2d =",crop_size + (n_w-1)*s_w+2*d_w
-                    break
-            if delta<tresh_h:
-                break
-
-        crops = np.zeros([n_w*n_h,4],dtype=np.uint32)
-        pos = 0
-        for i_w in range(n_w):
-            for i_h in range(n_h):
-
-                crops[pos,:] = [d_w+i_w*s_w, d_h+i_h*s_h, d_w+i_w*s_w+crop_size, d_h+i_h*s_h+crop_size]
-                pos = pos + 1
-
-        return crops
-
     def __init__(self):
         pass
 
-    def __call__(self, crop_id):
-        """Return the ..."""
+    def __call__(self):
         pass
+
+
+def prepareViews(self, img_w, img_h, ratio_for_stride=0.5, min_size_min=64, min_size_max=128, min_size_step=16, verbose=False):
+    min_size_max +=1
+    if verbose:
+        print('img_size : ' + str(img_w) + ',' +str(img_h))
+    list_min_size = range(min_size_min,min_size_max,min_size_step)
+    if verbose:
+        print('Looking for these sizes of patch : ' + str(list_min_size))
+
+    views = []
+    for min_size in list_min_size:
+        stride = int(math.ceil(ratio_for_stride*min_size))
+        i_w = 0
+        i_h = 0
+        if verbose:
+            print('Looking for this size of patch : ' + str(min_size))
+        while i_w + min_size-1 < img_w:
+            i_h = 0
+            while i_h + min_size-1 < img_h:
+                if verbose:
+                    print('Find : ' + str(i_w)+','+ str(i_h))
+                # views.append([i_w, i_h, min_size, min_size]) # x y w h
+                views.append([i_w, i_h, i_w + min_size-1, i_h + min_size-1]) #x1 y1 x2 y2
+                i_h += stride
+            i_w += stride
+    if verbose:
+        print('Number of patchs in this image : ' + str(len(views)))
+    return views
 
 class jg_dummy_layer(caffe.Layer):
 
@@ -478,6 +450,9 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
 
         self.iter_counter = 0  # setup a counter for iteration
 
+        self.dummy_data = layer_params['dummy_data']
+
+
         self.images_folder = layer_params['images_folder']
         self.image_file_extension = layer_params['image_file_extension']
         self.images_folder_ = layer_params['images_folder_']
@@ -501,9 +476,9 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         print "Number of image :",self.nb_images
         print "Separated in", self.num_classes, "classes :", self._class_to_ind
 
-        self.batch_data = np.zeros((1,3,400,400), dtype=np.float32)
-        self.batch_data_ = np.zeros((1,3,400,400), dtype=np.float32)
-        self.batch_segmentation = np.zeros((1,3,400,400), dtype=np.uint8)
+        self.batch_data = np.zeros((1,3,128,128), dtype=np.float32)
+        self.batch_data_ = np.zeros((1,3,128,128), dtype=np.float32)
+        self.batch_segmentation = np.zeros((1,3,128,128), dtype=np.uint8)
 
         # shuffling at each epoch
         self.shuffle = layer_params['shuffle']
@@ -514,6 +489,11 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
             self.permutation = np.random.permutation(self.nb_images)
         else:
             self.permutation = range(self.nb_images)
+
+        #views
+        self.views = []
+        self.images_processed = 0
+        self.load_data(0)
 
     def update(self,newParams):
         for key in newParams.keys():
@@ -566,6 +546,39 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         top[1].reshape(*self.batch_data_.shape)
         top[2].reshape(*self.batch_segmentation.shape)
 
+    def load_data(self, idx,data_=False):
+        """
+        Load input image and preprocess for Caffe:
+        - extract only a sub crop of the image
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        needToChangeImage = True
+        if needToChangeImage:
+            self.images_processed+=1
+            PENSER A FAIRE DU MODULO POUR ECONOMISER UNE VARIABLE : l'image en cours de traitement c'est self.images_processed%self.nb_images
+            il faut tout de meme une variable pour compter le nombre de vue traitée et si supérieure au nombre de vue disponible alors needToChangeImage...
+            if data_:
+                img = Image.open('{}{}.{}'.format(self.images_folder_, self.list_images[self.permutation[idx]],self.image_file_extension_))
+            else:
+                img = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+            img = np.array(img, dtype=np.float32)
+            if len(img.shape)==3:
+                img = img[:,:,::-1]
+            #img -= self.mean_bgr
+                img = img.transpose((2,0,1))
+            elif len(img.shape)==2:
+                img = img[np.newaxis, ...]
+            else:
+                print "Error : shape not accepted."
+            self.image = img
+            self.views = prepareViews(self, img.shape[1], img.shape[2], ratio_for_stride=0.5, min_size_min=128, min_size_max=128, min_size_step=32, verbose=True)
+
+        return img
+
+
     def load_img_data(self, idx,data_=False):
         """
         Load input image and preprocess for Caffe:
@@ -587,7 +600,10 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
             in_ = in_[np.newaxis, ...]
         else:
             print "Error : shape not accepted."
-        return in_
+        if self.dummy_data:
+            return np.ones((3,64,64),dtype=np.float32)
+        else:
+            return in_
 
     def load_img_segmentation(self, idx,delta=False):
         """
@@ -599,7 +615,11 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         if delta:
             segmentation = segmentation - 1
         segmentation = segmentation[np.newaxis, ...]
-        return segmentation
+
+        if self.dummy_data:
+            return np.ones((1,64,64),dtype=np.float32)
+        else:
+            return segmentation
 
 class jg_input_segmentation_layer(caffe.Layer):
     """works with only on image for now by batch"""
@@ -886,61 +906,3 @@ class jg_rebatching_layer(caffe.Layer):
             #    image_data = transformer.preprocess('data', image)
             #    net.blobs['data'].data[index] = image_data
             #output = net.forward()[net.outputs[-1]]
-
-# class PythonConfMat(caffe.Layer):
-#     """
-#     Compute the Accuracy with a Python Layer
-#     """
-#
-#     def setup(self, bottom, top):
-#         # check input pair
-#         if len(bottom) != 2:
-#             raise Exception("Need two inputs.")
-#
-#         self.num_labels = bottom[0].channels
-#         params = json.loads(self.param_str)
-#         self.test_iter = params['test_iter']
-#         self.conf_matrix = np.zeros((self.num_labels, self.num_labels))
-#         self.current_iter = 0
-#
-#     def reshape(self, bottom, top):
-#         # bottom[0] are the net's outputs
-#         # bottom[1] are the ground truth labels
-#
-#         # Net outputs and labels must have the same number of elements
-#         if bottom[0].num != bottom[1].num:
-#             raise Exception("Inputs must have the same number of elements.")
-#
-#         # accuracy output is scalar
-#         top[0].reshape(1)
-#
-#     def forward(self, bottom, top):
-#         self.current_iter += 1
-#
-#         # predicted outputs
-#         pred = np.argmax(bottom[0].data, axis=1)
-#         accuracy = np.sum(pred == bottom[1].data).astype(np.float32) / bottom[0].num
-#         top[0].data[...] = accuracy
-#
-#         # compute confusion matrix
-#         self.conf_matrix += sklearn.metrics.confusion_matrix(bottom[1].data, pred, labels=range(self.num_labels))
-#
-#         if self.current_iter == self.test_iter:
-#             self.current_iter = 0
-#             sys.stdout.write('\nCAUTION!! test_iter = %i. Make sure this is the correct value' % self.test_iter)
-#             sys.stdout.write('\n"param_str: \'{"test_iter":%i}\'" has been set in the definition of the PythonLayer' % self.test_iter)
-#             sys.stdout.write('\n\nConfusion Matrix')
-#             sys.stdout.write('\t'*(self.num_labels-2)+'| Accuracy')
-#             sys.stdout.write('\n'+'-'*8*(self.num_labels+1))
-#             sys.stdout.write('\n')
-#             for i in range(len(self.conf_matrix)):
-#                 for j in range(len(self.conf_matrix[i])):
-#                     sys.stdout.write(str(self.conf_matrix[i][j].astype(np.int))+'\t')
-#                 sys.stdout.write('| %3.2f %%' % (self.conf_matrix[i][i]*100 / self.conf_matrix[i].sum()))
-#                 sys.stdout.write('\n')
-#             sys.stdout.write('Number of test samples: %i \n\n' % self.conf_matrix.sum())
-#             # reset conf_matrix for next test phase
-#             self.conf_matrix = np.zeros((self.num_labels, self.num_labels))
-#
-#     def backward(self, top, propagate_down, bottom):
-#         pass
