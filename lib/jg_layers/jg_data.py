@@ -26,7 +26,7 @@ class dataset:
         pass
 
 
-def prepareViews(self, img_w, img_h, ratio_for_stride=0.5, min_size_min=64, min_size_max=128, min_size_step=16, verbose=False):
+def prepareViews(img_w, img_h, ratio_for_stride=0.5, min_size_min=64, min_size_max=128, min_size_step=16, verbose=False):
     min_size_max +=1
     if verbose:
         print('img_size : ' + str(img_w) + ',' +str(img_h))
@@ -451,6 +451,7 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         self.iter_counter = 0  # setup a counter for iteration
 
         self.dummy_data = layer_params['dummy_data']
+        self.data_way = layer_params['data_way']
 
 
         self.images_folder = layer_params['images_folder']
@@ -493,7 +494,10 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         #views
         self.views = []
         self.images_processed = 0
-        self.load_data(0)
+        self.views_processed = 0
+        self.image=np.zeros((1,3,32,32), dtype=np.float32)
+        self.image_=np.zeros((1,3,32,32), dtype=np.float32)
+        self.segmentation=np.zeros((1,3,32,32), dtype=np.float32)
 
     def update(self,newParams):
         for key in newParams.keys():
@@ -536,17 +540,16 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         pass
 
     def reshape(self, bottom, top):
-        # make batch
-        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
-        self.batch_data_ = self.load_img_data(self.iter_counter,True)[np.newaxis, ...]
-        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
-
+        if self.data_way=='views':
+            self.load_data_view()
+        elif self.data_way=='full':
+            self.load_data_full(self.iter_counter)
         # reshape net
         top[0].reshape(*self.batch_data.shape)
         top[1].reshape(*self.batch_data_.shape)
         top[2].reshape(*self.batch_segmentation.shape)
 
-    def load_data(self, idx,data_=False):
+    def load_data_view(self):
         """
         Load input image and preprocess for Caffe:
         - extract only a sub crop of the image
@@ -555,29 +558,100 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
         - subtract mean
         - transpose to channel x height x width order
         """
-        needToChangeImage = True
+        needToChangeImage = False
+        if self.views_processed>=len(self.views):
+            needToChangeImage = True
+
+
+
         if needToChangeImage:
             self.images_processed+=1
-            PENSER A FAIRE DU MODULO POUR ECONOMISER UNE VARIABLE : l'image en cours de traitement c'est self.images_processed%self.nb_images
-            il faut tout de meme une variable pour compter le nombre de vue traitée et si supérieure au nombre de vue disponible alors needToChangeImage...
-            if data_:
-                img = Image.open('{}{}.{}'.format(self.images_folder_, self.list_images[self.permutation[idx]],self.image_file_extension_))
-            else:
-                img = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+            self.views_processed=0
+
+            img = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.image_file_extension))
             img = np.array(img, dtype=np.float32)
             if len(img.shape)==3:
                 img = img[:,:,::-1]
-            #img -= self.mean_bgr
+                #img -= self.mean_bgr
                 img = img.transpose((2,0,1))
             elif len(img.shape)==2:
                 img = img[np.newaxis, ...]
             else:
-                print "Error : shape not accepted."
+                print "Error : shape not accepted for img."
+
+            img_ = Image.open('{}{}.{}'.format(self.images_folder_, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.image_file_extension_))
+            img_ = np.array(img_, dtype=np.float32)
+            if len(img_.shape)==3:
+                img_ = img_[:,:,::-1]
+                #img -= self.mean_bgr
+                img_ = img_.transpose((2,0,1))
+            elif len(img_.shape)==2:
+                img_ = img_[np.newaxis, ...]
+            else:
+                print "Error : shape not accepted for img_."
+
+            seg = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.segmentation_file_extension))
+            seg = np.array(seg, dtype=np.uint8)
+            seg = seg[np.newaxis, ...]
+
+
+            if self.image.shape!=img.shape:
+                self.views = prepareViews(img.shape[2], img.shape[1], ratio_for_stride=0.5, min_size_min=128, min_size_max=128, min_size_step=64, verbose=False)
+
             self.image = img
-            self.views = prepareViews(self, img.shape[1], img.shape[2], ratio_for_stride=0.5, min_size_min=128, min_size_max=128, min_size_step=32, verbose=True)
+            self.image_ = img_
+            self.segmentation = seg
 
-        return img
 
+
+        img_view = self.image[:,self.views[self.views_processed][1]:self.views[self.views_processed][3],self.views[self.views_processed][0]:self.views[self.views_processed][2]]
+        img_view_ = self.image_[:,self.views[self.views_processed][1]:self.views[self.views_processed][3],self.views[self.views_processed][0]:self.views[self.views_processed][2]]
+        seg_view = self.segmentation[:,self.views[self.views_processed][1]:self.views[self.views_processed][3],self.views[self.views_processed][0]:self.views[self.views_processed][2]]
+
+        self.batch_data = img_view[np.newaxis, ...]
+        self.batch_data_ = img_view_[np.newaxis, ...]
+        self.batch_segmentation = seg_view[np.newaxis, ...]
+
+        self.views_processed+=1
+
+    def load_data_full(self, idx):
+        """
+        Load input image and preprocess for Caffe:
+        - cast to float
+        - switch channels RGB -> BGR
+        - subtract mean
+        - transpose to channel x height x width order
+        """
+        img = Image.open('{}{}.{}'.format(self.images_folder, self.list_images[self.permutation[idx]],self.image_file_extension))
+        img = np.array(img, dtype=np.float32)
+        if len(img.shape)==3:
+            img = img[:,:,::-1]
+            #img -= self.mean_bgr
+            img = img.transpose((2,0,1))
+        elif len(img.shape)==2:
+            img = img[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted for img."
+
+
+        img_ = Image.open('{}{}.{}'.format(self.images_folder_, self.list_images[self.permutation[idx]],self.image_file_extension_))
+        img_ = np.array(img_, dtype=np.float32)
+        if len(img_.shape)==3:
+            img_ = img_[:,:,::-1]
+            #img -= self.mean_bgr
+            img_ = img_.transpose((2,0,1))
+        elif len(img_.shape)==2:
+            img_ = img_[np.newaxis, ...]
+        else:
+            print "Error : shape not accepted for img_."
+
+        seg = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[idx]],self.segmentation_file_extension))
+        seg = np.array(seg, dtype=np.uint8)
+        seg = seg[np.newaxis, ...]
+
+        self.batch_data = img[np.newaxis, ...]
+        self.batch_data_ = img_[np.newaxis, ...]
+        self.batch_segmentation = seg[np.newaxis, ...]
 
     def load_img_data(self, idx,data_=False):
         """
@@ -604,6 +678,9 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
             return np.ones((3,64,64),dtype=np.float32)
         else:
             return in_
+        self.batch_data = self.load_img_data(self.iter_counter)[np.newaxis, ...]
+        self.batch_data_ = self.load_img_data(self.iter_counter,True)[np.newaxis, ...]
+        self.batch_segmentation = self.load_img_segmentation(self.iter_counter)[np.newaxis, ...]
 
     def load_img_segmentation(self, idx,delta=False):
         """
