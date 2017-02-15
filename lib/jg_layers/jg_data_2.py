@@ -410,7 +410,7 @@ class jg_input_segmentation_batch_layer(caffe.Layer):
                     self.images_processed = 0
                     self.countEpoch += 1
                     print "Epoch really done :",self.countEpoch
-                    print "Average views by image :", float(self.patches_processed)/(self.self.countEpoch*self.nb_images)
+                    print "Average views by image :", float(self.patches_processed)/(self.countEpoch*self.nb_images)
                     if self.shuffle:
                         self.permutation = np.random.permutation(self.nb_images)
 
