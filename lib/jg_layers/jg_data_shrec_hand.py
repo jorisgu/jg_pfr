@@ -28,7 +28,7 @@ class jg_input_shrec_layer(caffe.Layer):
 
 
 
-        self.logfile = open('/home/jguerry/workspace/jg_pfr/lib/jg_layers/log.txt','w+')
+        self.logfile = open('/tmp/log_jg_shrec_layer.txt','w+')
 
 
         # images
