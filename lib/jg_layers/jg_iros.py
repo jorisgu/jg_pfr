@@ -1,3 +1,7 @@
+from utils.cython_bbox import bbox_overlaps
+from nms.gpu_nms import gpu_nms
+from nms.cpu_nms import cpu_nms
+
 import os
 import caffe
 import numpy as np
@@ -132,7 +136,7 @@ def clip_boxes(boxes, im_shape):
     boxes[:, 3::4] = np.maximum(np.minimum(boxes[:, 3::4], im_shape[0] - 1), 0)
     return boxes
 
-def _compute_targets(ex_rois, gt_rois):
+def _compute_targets_anchor(ex_rois, gt_rois):
     """Compute bounding-box regression targets for an image."""
 
     assert ex_rois.shape[0] == gt_rois.shape[0]
@@ -203,29 +207,29 @@ def _scale_enum(anchor, scales):
     anchors = _mkanchors(ws, hs, x_ctr, y_ctr)
     return anchors
 
-def bbox_overlaps(boxes,query_boxes):
-    """
-    Parameters
-    ----------
-    boxes: (N, 4) ndarray of float
-    query_boxes: (K, 4) ndarray of float
-    Returns
-    -------
-    overlaps: (N, K) ndarray of overlap between boxes and query_boxes
-    """
-    N = boxes.shape[0]
-    K = query_boxes.shape[0]
-    overlaps = np.zeros((N, K), dtype=np.float)
-    for k in range(K):
-        box_area = ((query_boxes[k, 2] - query_boxes[k, 0] + 1) * (query_boxes[k, 3] - query_boxes[k, 1] + 1))
-        for n in range(N):
-            iw = (min(boxes[n, 2], query_boxes[k, 2]) - max(boxes[n, 0], query_boxes[k, 0]) + 1)
-            if iw > 0:
-                ih = (min(boxes[n, 3], query_boxes[k, 3]) - max(boxes[n, 1], query_boxes[k, 1]) + 1 )
-                if ih > 0:
-                    ua = float((boxes[n, 2] - boxes[n, 0] + 1) *(boxes[n, 3] - boxes[n, 1] + 1) + box_area - iw * ih)
-                    overlaps[n, k] = iw * ih / ua
-    return overlaps
+# def bbox_overlaps(boxes,query_boxes):
+#     """
+#     Parameters
+#     ----------
+#     boxes: (N, 4) ndarray of float
+#     query_boxes: (K, 4) ndarray of float
+#     Returns
+#     -------
+#     overlaps: (N, K) ndarray of overlap between boxes and query_boxes
+#     """
+#     N = boxes.shape[0]
+#     K = query_boxes.shape[0]
+#     overlaps = np.zeros((N, K), dtype=np.float)
+#     for k in range(K):
+#         box_area = ((query_boxes[k, 2] - query_boxes[k, 0] + 1) * (query_boxes[k, 3] - query_boxes[k, 1] + 1))
+#         for n in range(N):
+#             iw = (min(boxes[n, 2], query_boxes[k, 2]) - max(boxes[n, 0], query_boxes[k, 0]) + 1)
+#             if iw > 0:
+#                 ih = (min(boxes[n, 3], query_boxes[k, 3]) - max(boxes[n, 1], query_boxes[k, 1]) + 1 )
+#                 if ih > 0:
+#                     ua = float((boxes[n, 2] - boxes[n, 0] + 1) *(boxes[n, 3] - boxes[n, 1] + 1) + box_area - iw * ih)
+#                     overlaps[n, k] = iw * ih / ua
+#     return overlaps
 
 def _unmap(data, count, inds, fill=0):
     """ Unmap a subset of item (data) back to the original set of items (of
@@ -246,6 +250,146 @@ def _filter_boxes(boxes, min_size):
     hs = boxes[:, 3] - boxes[:, 1] + 1
     keep = np.where((ws >= min_size) & (hs >= min_size))[0]
     return keep
+
+# def nms(dets, thresh):
+#     x1 = dets[:, 0]
+#     y1 = dets[:, 1]
+#     x2 = dets[:, 2]
+#     y2 = dets[:, 3]
+#     scores = dets[:, 4]
+#
+#     areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+#     order = scores.argsort()[::-1]
+#
+#     ndets = dets.shape[0]
+#     suppressed = np.zeros((ndets), dtype=np.int)
+#
+#     keep = []
+#     for _i in range(ndets):
+#         i = order[_i]
+#         if suppressed[i] == 1:
+#             continue
+#         keep.append(i)
+#         ix1 = x1[i]
+#         iy1 = y1[i]
+#         ix2 = x2[i]
+#         iy2 = y2[i]
+#         iarea = areas[i]
+#         for _j in range(_i + 1, ndets):
+#             j = order[_j]
+#             if suppressed[j] == 1:
+#                 continue
+#             xx1 = max(ix1, x1[j])
+#             yy1 = max(iy1, y1[j])
+#             xx2 = min(ix2, x2[j])
+#             yy2 = min(iy2, y2[j])
+#             w = max(0.0, xx2 - xx1 + 1)
+#             h = max(0.0, yy2 - yy1 + 1)
+#             inter = w * h
+#             ovr = inter / (iarea + areas[j] - inter)
+#             if ovr >= thresh:
+#                 suppressed[j] = 1
+#
+#     return keep
+
+def nms(dets, thresh, gpu=False):
+    """Dispatch to either CPU or GPU NMS implementations."""
+
+    if dets.shape[0] == 0:
+        return []
+    if gpu:
+        return gpu_nms(dets, thresh, device_id=0)
+    else:
+        return cpu_nms(dets, thresh)
+
+def _get_bbox_regression_labels(bbox_target_data, num_classes):
+    """Bounding-box regression targets (bbox_target_data) are stored in a
+    compact form N x (class, tx, ty, tw, th)
+
+    This function expands those targets into the 4-of-4*K representation used
+    by the network (i.e. only one class has non-zero targets).
+
+    Returns:
+        bbox_target (ndarray): N x 4K blob of regression targets
+        bbox_inside_weights (ndarray): N x 4K blob of loss weights
+    """
+    BBOX_INSIDE_WEIGHTS=(1.0, 1.0, 1.0, 1.0)
+    clss = bbox_target_data[:, 0]
+    bbox_targets = np.zeros((clss.size, 4 * num_classes), dtype=np.float32)
+    bbox_inside_weights = np.zeros(bbox_targets.shape, dtype=np.float32)
+    inds = np.where(clss > 0)[0]
+    for ind in inds:
+        cls = clss[ind]
+        start = 4 * cls
+        end = start + 4
+        bbox_targets[ind, start:end] = bbox_target_data[ind, 1:]
+        bbox_inside_weights[ind, start:end] = BBOX_INSIDE_WEIGHTS
+    return bbox_targets, bbox_inside_weights
+
+def _compute_targets(ex_rois, gt_rois, labels):
+    """Compute bounding-box regression targets for an image."""
+
+    BBOX_NORMALIZE_TARGETS_PRECOMPUTED = False
+    assert ex_rois.shape[0] == gt_rois.shape[0]
+    assert ex_rois.shape[1] == 4
+    assert gt_rois.shape[1] == 4
+
+    targets = bbox_transform(ex_rois, gt_rois)
+    if BBOX_NORMALIZE_TARGETS_PRECOMPUTED:
+        # Optionally normalize targets by a precomputed mean and stdev
+        targets = ((targets - np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS))
+                / np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS))
+    return np.hstack(
+            (labels[:, np.newaxis], targets)).astype(np.float32, copy=False)
+
+def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_classes):
+    """Generate a random sample of RoIs comprising foreground and background
+    examples.
+    """
+    FG_THRESH = 0.5
+    BG_THRESH_HI = 0.5
+    BG_THRESH_LO = 0.1
+    # overlaps: (rois x gt_boxes)
+    overlaps = bbox_overlaps(np.ascontiguousarray(all_rois[:, 1:5], dtype=np.float),np.ascontiguousarray(gt_boxes[:, 1:], dtype=np.float))
+    # overlaps = bbox_overlaps(np.ascontiguousarray(all_rois[:, 1:5], dtype=np.float),np.ascontiguousarray(gt_boxes[:, :4], dtype=np.float))
+    gt_assignment = overlaps.argmax(axis=1)
+    max_overlaps = overlaps.max(axis=1)
+    labels = gt_boxes[gt_assignment, 0]
+    # labels = gt_boxes[gt_assignment, 4]
+
+    # Select foreground RoIs as those with >= FG_THRESH overlap
+    fg_inds = np.where(max_overlaps >= FG_THRESH)[0]
+    # Guard against the case when an image has fewer than fg_rois_per_image
+    # foreground RoIs
+    fg_rois_per_this_image = min(fg_rois_per_image, fg_inds.size)
+    # Sample foreground regions without replacement
+    if fg_inds.size > 0:
+        fg_inds = npr.choice(fg_inds, size=fg_rois_per_this_image, replace=False)
+
+    # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
+    bg_inds = np.where((max_overlaps < BG_THRESH_HI) &
+                       (max_overlaps >= BG_THRESH_LO))[0]
+    # Compute number of background RoIs to take from this image (guarding
+    # against there being fewer than desired)
+    bg_rois_per_this_image = rois_per_image - fg_rois_per_this_image
+    bg_rois_per_this_image = min(bg_rois_per_this_image, bg_inds.size)
+    # Sample background regions without replacement
+    if bg_inds.size > 0:
+        bg_inds = npr.choice(bg_inds, size=bg_rois_per_this_image, replace=False)
+
+    # The indices that we're selecting (both fg and bg)
+    keep_inds = np.append(fg_inds, bg_inds)
+    # Select sampled values from various arrays:
+    labels = labels[keep_inds]
+    # Clamp labels for the background RoIs to 0
+    labels[fg_rois_per_this_image:] = 0
+    rois = all_rois[keep_inds]
+
+    bbox_target_data = _compute_targets(rois[:, 1:5], gt_boxes[gt_assignment[keep_inds], 1:], labels)
+
+    bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(bbox_target_data, num_classes)
+
+    return labels, rois, bbox_targets, bbox_inside_weights
 
 class jg_iros_input_layer(caffe.Layer):
     def setup(self, bottom, top):
@@ -513,7 +657,6 @@ class jg_bbox_rpn(caffe.Layer):
     Outputs object detection proposals by applying estimated bounding-box
     transformations to a set of regular boxes (called "anchors").
     """
-
     def setup(self, bottom, top):
         # parse the layer parameter string, which must be valid YAML
         layer_params = yaml.load(self.param_str_)
@@ -523,14 +666,25 @@ class jg_bbox_rpn(caffe.Layer):
         self._anchors = generate_anchors(scales=np.array(anchor_scales))
         self._num_anchors = self._anchors.shape[0]
 
+        self.RPN_PRE_NMS_TOP_N = 12000 # Number of top scoring boxes to keep before apply NMS to RPN proposals
+        self.RPN_POST_NMS_TOP_N = 2000 # Number of top scoring boxes to keep after applying NMS to RPN proposals
+        self.RPN_NMS_THRESH = 0.7 # NMS threshold used on RPN proposals
+        self.RPN_MIN_SIZE = 16 # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
+
+
+
+        self.img_width = int(layer_params.get('img_width', 256))
+        self.img_height = int(layer_params.get('img_height', 256))
+        self.img_scale = float(layer_params.get('img_scale', 1))
+        self.stride = int(layer_params.get('stride', 16))
+        self.width = int(self.img_width/self.stride)
+        self.height = int(self.img_height/self.stride)
+
+
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a
         # rectangle (x1, y1, x2, y2)
         top[0].reshape(1, 5)
-
-        # scores blob: holds scores for R regions of interest
-        if len(top) > 1:
-            top[1].reshape(1, 1, 1, 1)
 
     def forward(self, bottom, top):
         # Algorithm:
@@ -546,20 +700,17 @@ class jg_bbox_rpn(caffe.Layer):
         # take after_nms_topN proposals after NMS
         # return the top proposals (-> RoIs top, scores top)
 
-        assert bottom[0].data.shape[0] == 1, \
-            'Only single item batches are supported'
-TODO JOJO : mettre les valeurs de cfg dans le setup
-        cfg_key = str(self.phase) # either 'TRAIN' or 'TEST'
-        pre_nms_topN  = cfg[cfg_key].RPN_PRE_NMS_TOP_N
-        post_nms_topN = cfg[cfg_key].RPN_POST_NMS_TOP_N
-        nms_thresh    = cfg[cfg_key].RPN_NMS_THRESH
-        min_size      = cfg[cfg_key].RPN_MIN_SIZE
+        assert bottom[0].data.shape[0] == 1, 'Only single item batches are supported'
+
+        pre_nms_topN  = self.RPN_PRE_NMS_TOP_N
+        post_nms_topN = self.RPN_POST_NMS_TOP_N
+        nms_thresh    = self.RPN_NMS_THRESH
+        min_size      = self.RPN_MIN_SIZE
 
         # the first set of _num_anchors channels are bg probs
         # the second set are the fg probs, which we want
         scores = bottom[0].data[:, self._num_anchors:, :, :]
         bbox_deltas = bottom[1].data
-        im_info = bottom[2].data[0, :]
 
 
 
@@ -572,8 +723,7 @@ TODO JOJO : mettre les valeurs de cfg dans le setup
         shift_x = np.arange(0, self.width) * self._feat_stride
         shift_y = np.arange(0, self.height) * self._feat_stride
         shift_x, shift_y = np.meshgrid(shift_x, shift_y)
-        shifts = np.vstack((shift_x.ravel(), shift_y.ravel(),
-                            shift_x.ravel(), shift_y.ravel())).transpose()
+        shifts = np.vstack((shift_x.ravel(), shift_y.ravel(),shift_x.ravel(), shift_y.ravel())).transpose()
 
         # Enumerate all shifted anchors:
         #
@@ -583,8 +733,7 @@ TODO JOJO : mettre les valeurs de cfg dans le setup
         # reshape to (K*A, 4) shifted anchors
         A = self._num_anchors
         K = shifts.shape[0]
-        anchors = self._anchors.reshape((1, A, 4)) + \
-                  shifts.reshape((1, K, 4)).transpose((1, 0, 2))
+        anchors = self._anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
         anchors = anchors.reshape((K * A, 4))
 
         # Transpose and reshape predicted bbox transformations to get them
@@ -607,11 +756,11 @@ TODO JOJO : mettre les valeurs de cfg dans le setup
         proposals = bbox_transform_inv(anchors, bbox_deltas)
 
         # 2. clip predicted boxes to image
-        proposals = clip_boxes(proposals, im_info[:2])
+        proposals = clip_boxes(proposals, [self.img_width,self.img_height])
 
         # 3. remove predicted boxes with either height or width < threshold
-        # (NOTE: convert min_size to input image scale stored in im_info[2])
-        keep = _filter_boxes(proposals, min_size * im_info[2])
+        # (NOTE: convert min_size to input image scale stored in self.img_scale)
+        keep = _filter_boxes(proposals, min_size * self.img_scale)
         proposals = proposals[keep, :]
         scores = scores[keep]
 
@@ -644,11 +793,6 @@ TODO JOJO : mettre les valeurs de cfg dans le setup
         #print "reshaping : top_proposal_shape_after =",top_proposal_shape_after
         top[0].data[...] = blob
 
-        # [Optional] output scores blob
-        if len(top) > 1:
-            top[1].reshape(*(scores.shape))
-            top[1].data[...] = scores
-
     def backward(self, top, propagate_down, bottom):
         """This layer does not propagate gradients."""
         pass
@@ -679,11 +823,12 @@ class jg_rpn_gt(caffe.Layer):
         self.RPN_BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0) # Deprecated (outside weights)
         self.RPN_POSITIVE_WEIGHT = -1.0 # Set to -1.0 to use uniform example weighting
 
-        self.img_width = int(layer_params['img_width'])
-        self.img_height = int(layer_params['img_height'])
-
-        self.width = int(layer_params['img_width']/layer_params['feat_stride'])
-        self.height = int(layer_params['img_height']/layer_params['feat_stride'])
+        self.img_width = int(layer_params.get('img_width', 256))
+        self.img_height = int(layer_params.get('img_height', 256))
+        self.img_scale = float(layer_params.get('img_scale', 1))
+        self.stride = int(layer_params.get('stride', 16))
+        self.width = int(self.img_width/self.stride)
+        self.height = int(self.img_height/self.stride)
 
         A = self._num_anchors
         # # labels
@@ -747,10 +892,9 @@ class jg_rpn_gt(caffe.Layer):
         # overlaps between the anchors and the gt boxes
         # overlaps (ex, gt)
 
-        overlaps = bbox_overlaps(anchors,gt_boxes)
-        # print("Anchors after",anchors)
-        # print("gt boxes",gt_boxes)
-        # exit()
+        overlaps = bbox_overlaps(np.ascontiguousarray(anchors, dtype=np.float),np.ascontiguousarray(gt_boxes, dtype=np.float))
+        # overlaps = bbox_overlaps(anchors,gt_boxes)
+
         argmax_overlaps = overlaps.argmax(axis=1)
         max_overlaps = overlaps[np.arange(len(inds_inside)), argmax_overlaps]
         gt_argmax_overlaps = overlaps.argmax(axis=0)
@@ -784,7 +928,7 @@ class jg_rpn_gt(caffe.Layer):
             labels[disable_inds] = -1
 
         bbox_targets = np.zeros((len(inds_inside), 4), dtype=np.float32)
-        bbox_targets = _compute_targets(anchors, gt_boxes[argmax_overlaps, :])
+        bbox_targets = _compute_targets_anchor(anchors, gt_boxes[argmax_overlaps, :])
 
         bbox_inside_weights = np.zeros((len(inds_inside), 4), dtype=np.float32)
         bbox_inside_weights[labels == 1, :] = np.array(self.RPN_BBOX_INSIDE_WEIGHTS)
@@ -858,161 +1002,78 @@ class jg_prediction_gt(caffe.Layer):
         self._num_anchors = self._anchors.shape[0]
         self._feat_stride = layer_params['feat_stride']
 
-        self.RPN_NEGATIVE_OVERLAP = 0.2
-        self.RPN_POSITIVE_OVERLAP = 0.7
-        self.RPN_FG_FRACTION = 0.5
-        self.RPN_BATCHSIZE = 200
-        self.RPN_BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0) # Deprecated (outside weights)
-        self.RPN_POSITIVE_WEIGHT = -1.0 # Set to -1.0 to use uniform example weighting
+        self.BATCH_SIZE = 256
+        self.FG_FRACTION = 0.25
 
-        self.img_width = int(layer_params['img_width'])
-        self.img_height = int(layer_params['img_height'])
+        self.img_width = int(layer_params.get('img_width', 256))
+        self.img_height = int(layer_params.get('img_height', 256))
+        self.img_scale = float(layer_params.get('img_scale', 1))
+        self.stride = int(layer_params.get('stride', 16))
+        self.width = int(self.img_width/self.stride)
+        self.height = int(self.img_height/self.stride)
 
-        self.width = int(layer_params['img_width']/layer_params['feat_stride'])
-        self.height = int(layer_params['img_height']/layer_params['feat_stride'])
+        self._num_classes = int(layer_params.get('_num_classes', 37))
 
-        A = self._num_anchors
-        # # labels
-        top[0].reshape(1, 1, A * self.height, self.width)
+        # sampled rois (0, x1, y1, x2, y2)
+        top[0].reshape(1, 5)
+        # labels
+        top[1].reshape(1, 1)
         # bbox_targets
-        top[1].reshape(1, A * 4, self.height, self.width)
+        top[2].reshape(1, self._num_classes * 4)
         # bbox_inside_weights
-        top[2].reshape(1, A * 4, self.height, self.width)
+        top[3].reshape(1, self._num_classes * 4)
         # bbox_outside_weights
-        top[3].reshape(1, A * 4, self.height, self.width)
+        top[4].reshape(1, self._num_classes * 4)
 
     def forward(self, bottom, top):
-        """ Top(s): 0#delta
-        """
-        #top[0].data[...] = self.batch_delta
+        # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
+        # (i.e., rpn.proposal_layer.ProposalLayer), or any other source
+        all_rois = bottom[0].data
+        # GT boxes (x1, y1, x2, y2, label)
+        # TODO(rbg): it's annoying that sometimes I have extra info before
+        # and other times after box coordinates -- normalize to one format
+        gt_boxes = bottom[1].data[0]
 
-        # Algorithm:
-        #
-        # for each (H, W) location i
-        #   generate 9 anchor boxes centered on cell i
-        #   apply predicted bbox deltas at cell i to each of the 9 anchors
-        # filter out-of-image anchors
-        # measure GT overlap
+        # Include ground-truth boxes in the set of candidate rois
+        zeros = np.zeros((gt_boxes.shape[0], 1), dtype=gt_boxes.dtype)
 
-        gt_boxes = bottom[0].data
+        all_rois = np.vstack((all_rois, np.hstack((zeros, gt_boxes[:, :-1]))))
 
-        # 1. Generate proposals from bbox deltas and shifted anchors
-        shift_x = np.arange(0, self.width) * self._feat_stride
-        shift_y = np.arange(0, self.height) * self._feat_stride
-        shift_x, shift_y = np.meshgrid(shift_x, shift_y)
-        shifts = np.vstack((shift_x.ravel(), shift_y.ravel(),
-                            shift_x.ravel(), shift_y.ravel())).transpose()
-        # add A anchors (1, A, 4) to
-        # cell K shifts (K, 1, 4) to get
-        # shift anchors (K, A, 4)
-        # reshape to (K*A, 4) shifted anchors
-        A = self._num_anchors
-        K = shifts.shape[0]
-        all_anchors = (self._anchors.reshape((1, A, 4)) +
-                       shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
-        all_anchors = all_anchors.reshape((K * A, 4))
-        total_anchors = int(K * A)
+        # Sanity check: single batch only
+        assert np.all(all_rois[:, 0] == 0), 'Only single item batches are supported'
 
-        # only keep anchors inside the image
-        inds_inside = np.where(
-            (all_anchors[:, 0] >= -self._allowed_border) &
-            (all_anchors[:, 1] >= -self._allowed_border) &
-            (all_anchors[:, 2] < self.img_width + self._allowed_border) &  # width
-            (all_anchors[:, 3] < self.img_height + self._allowed_border)    # height
-        )[0]
+        num_images = 1
+        rois_per_image = self.BATCH_SIZE / num_images
+        fg_rois_per_image = int(np.round(self.FG_FRACTION * rois_per_image))
 
-        # keep only inside anchors
-        anchors = all_anchors[inds_inside, :]
+        # Sample rois with classification labels and bounding box regression targets
+        # print("all_rois",all_rois)
+        # print("gt_boxes",gt_boxes)
+        # print("fg_rois_per_image",fg_rois_per_image)
+        # print("rois_per_image",rois_per_image)
+        # print("self._num_classes",self._num_classes)
+        # exit()
+        labels, rois, bbox_targets, bbox_inside_weights = _sample_rois(all_rois, gt_boxes, fg_rois_per_image,rois_per_image, self._num_classes)
 
-        # label: 1 is positive, 0 is negative, -1 is dont care
-        labels = np.empty((len(inds_inside), ), dtype=np.float32)
-        labels.fill(-1)
-        # overlaps between the anchors and the gt boxes
-        # overlaps (ex, gt)
-        overlaps = bbox_overlaps(anchors,gt_boxes)
-        argmax_overlaps = overlaps.argmax(axis=1)
-        max_overlaps = overlaps[np.arange(len(inds_inside)), argmax_overlaps]
-        gt_argmax_overlaps = overlaps.argmax(axis=0)
-        gt_max_overlaps = overlaps[gt_argmax_overlaps,np.arange(overlaps.shape[1])]
-        gt_argmax_overlaps = np.where(overlaps == gt_max_overlaps)[0]
+        # sampled rois
+        top[0].reshape(*rois.shape)
+        top[0].data[...] = rois
 
-        # assign bg labels first so that positive labels can clobber them
-        labels[max_overlaps < self.RPN_NEGATIVE_OVERLAP] = 0
-
-        # fg label: for each gt, anchor with highest overlap
-        labels[gt_argmax_overlaps] = 1
-
-        # fg label: above threshold IOU
-        labels[max_overlaps >= self.RPN_POSITIVE_OVERLAP] = 1
-
-        # # assign bg labels last so that negative labels can clobber positives
-        # labels[max_overlaps < self.RPN_NEGATIVE_OVERLAP] = 0
-
-        # subsample positive labels if we have too many
-        num_fg = int(self.RPN_FG_FRACTION * self.RPN_BATCHSIZE)
-        fg_inds = np.where(labels == 1)[0]
-        if len(fg_inds) > num_fg:
-            disable_inds = npr.choice(fg_inds, size=(len(fg_inds) - num_fg), replace=False)
-            labels[disable_inds] = -1
-
-        # subsample negative labels if we have too many
-        num_bg = self.RPN_BATCHSIZE - np.sum(labels == 1)
-        bg_inds = np.where(labels == 0)[0]
-        if len(bg_inds) > num_bg:
-            disable_inds = npr.choice(bg_inds, size=(len(bg_inds) - num_bg), replace=False)
-            labels[disable_inds] = -1
-
-        bbox_targets = np.zeros((len(inds_inside), 4), dtype=np.float32)
-        bbox_targets = _compute_targets(anchors, gt_boxes[argmax_overlaps, :])
-
-        bbox_inside_weights = np.zeros((len(inds_inside), 4), dtype=np.float32)
-        bbox_inside_weights[labels == 1, :] = np.array(self.RPN_BBOX_INSIDE_WEIGHTS)
-        bbox_outside_weights = np.zeros((len(inds_inside), 4), dtype=np.float32)
-        if self.RPN_POSITIVE_WEIGHT < 0:
-            # uniform weighting of examples (given non-uniform sampling)
-            num_examples = np.sum(labels >= 0)
-            positive_weights = np.ones((1, 4)) * 1.0 / num_examples
-            negative_weights = np.ones((1, 4)) * 1.0 / num_examples
-        else:
-            assert ((self.RPN_POSITIVE_WEIGHT > 0) & (self.RPN_POSITIVE_WEIGHT < 1))
-            positive_weights = (self.RPN_POSITIVE_WEIGHT / np.sum(labels == 1))
-            negative_weights = ((1.0 - self.RPN_POSITIVE_WEIGHT) / np.sum(labels == 0))
-        bbox_outside_weights[labels == 1, :] = positive_weights
-        bbox_outside_weights[labels == 0, :] = negative_weights
-
-        # map up to original set of anchors
-        labels = _unmap(labels, total_anchors, inds_inside, fill=-1)
-        bbox_targets = _unmap(bbox_targets, total_anchors, inds_inside, fill=0)
-        bbox_inside_weights = _unmap(bbox_inside_weights, total_anchors, inds_inside, fill=0)
-        bbox_outside_weights = _unmap(bbox_outside_weights, total_anchors, inds_inside, fill=0)
-
-        # labels
-        labels = labels.reshape((1, self.height, self.width, A)).transpose(0, 3, 1, 2)
-        labels = labels.reshape((1, 1, A * self.height, self.width))
-        top[0].reshape(*labels.shape)
-        top[0].data[...] = labels
+        # classification labels
+        top[1].reshape(*labels.shape)
+        top[1].data[...] = labels
 
         # bbox_targets
-        bbox_targets = bbox_targets \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
-        top[1].reshape(*bbox_targets.shape)
-        top[1].data[...] = bbox_targets
+        top[2].reshape(*bbox_targets.shape)
+        top[2].data[...] = bbox_targets
 
         # bbox_inside_weights
-        bbox_inside_weights = bbox_inside_weights \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
-        assert bbox_inside_weights.shape[2] == self.height
-        assert bbox_inside_weights.shape[3] == self.width
-        top[2].reshape(*bbox_inside_weights.shape)
-        top[2].data[...] = bbox_inside_weights
+        top[3].reshape(*bbox_inside_weights.shape)
+        top[3].data[...] = bbox_inside_weights
 
         # bbox_outside_weights
-        bbox_outside_weights = bbox_outside_weights \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
-        assert bbox_outside_weights.shape[2] == self.height
-        assert bbox_outside_weights.shape[3] == self.width
-        top[3].reshape(*bbox_outside_weights.shape)
-        top[3].data[...] = bbox_outside_weights
+        top[4].reshape(*bbox_inside_weights.shape)
+        top[4].data[...] = np.array(bbox_inside_weights > 0).astype(np.float32)
 
     def backward(self, top, propagate_down, bottom):
         """ Bottoms: """
