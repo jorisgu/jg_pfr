@@ -447,6 +447,7 @@ class jg_iros_input_layer(caffe.Layer):
         self.batch_data_0 = np.zeros((int(self.batch_size),3,256,256), dtype=np.float32)
         self.batch_segmentation = np.zeros((int(self.batch_size),1,256,256), dtype=np.uint8)
         self.batch_bbox = np.zeros((int(self.batch_size),self.max_rois_per_view,5), dtype=np.uint16) #[batch_size,Nrois,5](label, x1, y1, x2, y2)
+        self.batch_iminfo = np.asarray([480,640,1],dtype=np.uint16) # h w scale
         # counters
         self.views_processed = 0
         self.images_processed = 0
@@ -480,6 +481,7 @@ class jg_iros_input_layer(caffe.Layer):
         top[0].data[...] = self.batch_data_0
         top[1].data[...] = self.batch_segmentation
         top[2].data[...] = self.batch_bbox
+        top[3].data[...] = self.batch_iminfo
         # Update number of batches processed
         self.batches_processed += 1
 
@@ -495,6 +497,7 @@ class jg_iros_input_layer(caffe.Layer):
         top[0].reshape(*self.batch_data_0.shape)
         top[1].reshape(*self.batch_segmentation.shape)
         top[2].reshape(*self.batch_bbox.shape)
+        top[3].reshape(*self.batch_iminfo.shape)
 
     def load_data_view(self):
         """
@@ -592,6 +595,7 @@ class jg_iros_input_layer(caffe.Layer):
             self.batch_segmentation[i,...] = seg_patch
             self.batch_bbox[i,...] = np.zeros((50,5),dtype=np.uint16)
             self.batch_bbox[i,...] = copyOfBbox
+            self.batch_iminfo = [img_0.shape[2],img_0.shape[3],1]
 
 
             self.views_processed+=1
@@ -606,7 +610,7 @@ class jg_iros_input_layer(caffe.Layer):
         - transpose to channel x height x width order
         """
         ## DATA LOADING
-        img_0 = Image.open('{}{}.{}'.format(self.images_folder_0, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.image_file_extension_0))
+        img_0 = Image.open('{}{}.{}'.format(self.images_folder_0, self.list_images[self.permutation[self.images_processed]],self.image_file_extension_0))
         img_0 = np.array(img_0, dtype=np.float32)
         if len(img_0.shape)==3:
             img_0 = img_0[:,:,::-1]
@@ -618,12 +622,12 @@ class jg_iros_input_layer(caffe.Layer):
             print "Error : shape not accepted for img."
 
         ## SEGMENTATION LOADING
-        seg = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.segmentation_file_extension))
+        seg = Image.open('{}{}.{}'.format(self.segmentations_folder, self.list_images[self.permutation[self.images_processed]],self.segmentation_file_extension))
         seg = np.array(seg, dtype=np.uint8)
         seg = seg[np.newaxis, ...]
 
         ## ROIS LOADING
-        filename = '{}{}.{}'.format(self.bbox_folder, self.list_images[self.permutation[self.images_processed%self.nb_images]],self.bbox_file_extension)
+        filename = '{}{}.{}'.format(self.bbox_folder, self.list_images[self.permutation[self.images_processed]],self.bbox_file_extension)
         tree = ET.parse(filename)
         objs = tree.findall('object')
         only_in_cls_obj = [obj for obj in objs if obj.find('name').text.lower().strip() in self.classes]
@@ -644,10 +648,12 @@ class jg_iros_input_layer(caffe.Layer):
 
         self.batch_data_0 = img_0[np.newaxis, ...]
         self.batch_segmentation = seg[np.newaxis, ...]
-        self.batch_bbox = img_rois
+        self.batch_bbox = img_rois[np.newaxis, ...]
+        self.batch_iminfo = np.asarray([img_0.shape[1],img_0.shape[2],1])
 
         self.images_processed+=1
         if self.images_processed>=self.nb_images:
+            self.images_processed = 0
             self.countEpoch += 1
             if self.shuffle:
                 self.permutation = np.random.permutation(self.nb_images)
@@ -677,9 +683,9 @@ class jg_bbox_rpn(caffe.Layer):
         self.img_height = int(layer_params.get('img_height', 256))
         self.img_scale = float(layer_params.get('img_scale', 1))
         self.stride = int(layer_params.get('stride', 16))
-        self.width = int(self.img_width/self.stride)
-        self.height = int(self.img_height/self.stride)
-
+        # self.width = int(self.img_width/self.stride)
+        # self.height = int(self.img_height/self.stride)
+        self.height, self.width = bottom[1].data.shape[-2:]
 
         # rois blob: holds R regions of interest, each is a 5-tuple
         # (n, x1, y1, x2, y2) specifying an image batch index n and a
@@ -701,6 +707,12 @@ class jg_bbox_rpn(caffe.Layer):
         # return the top proposals (-> RoIs top, scores top)
 
         assert bottom[0].data.shape[0] == 1, 'Only single item batches are supported'
+
+        im_info = bottom[2].data
+        self.img_width = im_info[1]
+        self.img_height = im_info[0]
+        self.img_scale = im_info[2]
+
 
         pre_nms_topN  = self.RPN_PRE_NMS_TOP_N
         post_nms_topN = self.RPN_POST_NMS_TOP_N
@@ -823,12 +835,13 @@ class jg_rpn_gt(caffe.Layer):
         self.RPN_BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0) # Deprecated (outside weights)
         self.RPN_POSITIVE_WEIGHT = -1.0 # Set to -1.0 to use uniform example weighting
 
-        self.img_width = int(layer_params.get('img_width', 256))
+        self.img_width = int(layer_params.get('img_height', 256))
         self.img_height = int(layer_params.get('img_height', 256))
         self.img_scale = float(layer_params.get('img_scale', 1))
         self.stride = int(layer_params.get('stride', 16))
-        self.width = int(self.img_width/self.stride)
-        self.height = int(self.img_height/self.stride)
+        self.height, self.width = bottom[1].data.shape[-2:]
+        # self.width = int(self.img_width/self.stride)
+        # self.height = int(self.img_height/self.stride)
 
         A = self._num_anchors
         # # labels
@@ -844,6 +857,11 @@ class jg_rpn_gt(caffe.Layer):
         """ Top(s): 0#delta
         """
         #top[0].data[...] = self.batch_delta
+        im_info = bottom[2].data
+        self.img_width = im_info[1]
+        self.img_height = im_info[0]
+        self.img_scale = im_info[2]
+
 
         # Algorithm:
         #
@@ -1026,6 +1044,13 @@ class jg_prediction_gt(caffe.Layer):
         top[4].reshape(1, self._num_classes * 4)
 
     def forward(self, bottom, top):
+
+        im_info = bottom[2].data
+        self.img_width = im_info[1]
+        self.img_height = im_info[0]
+        self.img_scale = im_info[2]
+
+
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
         # (i.e., rpn.proposal_layer.ProposalLayer), or any other source
         all_rois = bottom[0].data
