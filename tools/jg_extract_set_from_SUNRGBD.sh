@@ -18,7 +18,7 @@ sets_dir=$1/data/sets/$3/
 for stage in 'train' 'test'
 do
   echo "Processing ${stage} set :"
-  for encoding in 'labels_segmentation_37d'
+  for encoding in 'rgb_i_100_8bits' #'labels_segmentation_37d'
     do
   	  echo "Encoding : ${encoding}"
       imageset_file=${sets_dir}${stage}.txt
