@@ -688,7 +688,7 @@ class jg_input_fuse_segmentation_layer(caffe.Layer):
 
         self.iter_counter = 0  # setup a counter for iteration
 
-        # self.dummy_data = layer_params.get('dummy_data', False)
+        self.dummy_data = layer_params.get('dummy_data', False)
         self.data_way = layer_params['data_way']
 
 
