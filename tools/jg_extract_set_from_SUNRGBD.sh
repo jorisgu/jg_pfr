@@ -15,26 +15,26 @@ sets_dir=$1/data/sets/$3/
 
 
 
-for stage in 'train' 'test'
-do
-  echo "Processing ${stage} set :"
-  for encoding in 'rgb_i_100_8bits' #'labels_segmentation_37d'
-    do
-  	  echo "Encoding : ${encoding}"
-      imageset_file=${sets_dir}${stage}.txt
-      echo "set file: ${imageset_file}"
-      output_image_dir=${output_dataset_dir}${encoding}/${stage}/
-      echo "output_image_dir: ${output_image_dir}"
-      mkdir -p ${output_image_dir}
-
-      cd ${output_image_dir}
-      while read -r file; do
-          ln -sf "../../../data/${encoding}/${file}.png" .;
-          #ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
-      done < ${imageset_file}
-    done
-done
-echo "Done!"
+# for stage in 'train' 'test'
+# do
+#   echo "Processing ${stage} set :"
+#   for encoding in 'd_raw_normal_8bits' # 'rgb_i_100_8bits' #'labels_segmentation_37d'
+#     do
+#   	  echo "Encoding : ${encoding}"
+#       imageset_file=${sets_dir}${stage}.txt
+#       echo "set file: ${imageset_file}"
+#       output_image_dir=${output_dataset_dir}${encoding}/${stage}/
+#       echo "output_image_dir: ${output_image_dir}"
+#       mkdir -p ${output_image_dir}
+#
+#       cd ${output_image_dir}
+#       while read -r file; do
+#           ln -sf "../../../data/${encoding}/${file}.png" .;
+#           #ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
+#       done < ${imageset_file}
+#     done
+# done
+# echo "Done!"
 #
 #
 #
@@ -59,24 +59,24 @@ echo "Done!"
 # done
 #
 # echo "Done!"
-#
-#
-# for stage in 'train' 'test'
-# do
-#   echo "Processing ${stage} set :"
-#   for encoding in 'd_raw_cubehelix_8bits' 'd_raw_jet_8bits'
-#     do
-#   	echo "Encoding : ${encoding}"
-#       imageset_file=${sets_dir}${stage}.txt
-#       output_image_dir=${output_dataset_dir}${encoding}_norm/${stage}/
-#       mkdir -p ${output_image_dir}
-#
-#       cd ${output_image_dir}
-#       while read -r file; do
-#           #ln -sf "../../../data/${encoding}/${file}.png" .;
-#           ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
-#       done < ${imageset_file}
-#     done
-# done
-#
-# echo "Done!"
+
+
+for stage in 'train' 'test'
+do
+  echo "Processing ${stage} set :"
+  for encoding in 'd_raw_normal_8bits' #'d_raw_cubehelix_8bits' 'd_raw_jet_8bits'
+    do
+  	echo "Encoding : ${encoding}"
+      imageset_file=${sets_dir}${stage}.txt
+      output_image_dir=${output_dataset_dir}${encoding}_norm/${stage}/
+      mkdir -p ${output_image_dir}
+
+      cd ${output_image_dir}
+      while read -r file; do
+          #ln -sf "../../../data/${encoding}/${file}.png" .;
+          ln -sf "../../../data_spreadout/${encoding}/${file}.png" .;
+      done < ${imageset_file}
+    done
+done
+
+echo "Done!"
