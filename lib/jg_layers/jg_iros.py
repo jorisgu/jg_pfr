@@ -919,7 +919,7 @@ class jg_rpn_gt(caffe.Layer):
         gt_max_overlaps = overlaps[gt_argmax_overlaps,np.arange(overlaps.shape[1])]
         gt_argmax_overlaps = np.where(overlaps == gt_max_overlaps)[0]
 
-        # assign bg labels first so that positive labels can clobber them
+        # assign bg labels first so that positive labels can clobber them [priority to objectness instead of background]
         labels[max_overlaps < self.RPN_NEGATIVE_OVERLAP] = 0
 
         # fg label: for each gt, anchor with highest overlap
@@ -976,22 +976,19 @@ class jg_rpn_gt(caffe.Layer):
         top[0].data[...] = labels
 
         # bbox_targets
-        bbox_targets = bbox_targets \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
+        bbox_targets = bbox_targets.reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
         top[1].reshape(*bbox_targets.shape)
         top[1].data[...] = bbox_targets
 
         # bbox_inside_weights
-        bbox_inside_weights = bbox_inside_weights \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
+        bbox_inside_weights = bbox_inside_weights.reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
         assert bbox_inside_weights.shape[2] == self.height
         assert bbox_inside_weights.shape[3] == self.width
         top[2].reshape(*bbox_inside_weights.shape)
         top[2].data[...] = bbox_inside_weights
 
         # bbox_outside_weights
-        bbox_outside_weights = bbox_outside_weights \
-            .reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
+        bbox_outside_weights = bbox_outside_weights.reshape((1, self.height, self.width, A * 4)).transpose(0, 3, 1, 2)
         assert bbox_outside_weights.shape[2] == self.height
         assert bbox_outside_weights.shape[3] == self.width
         top[3].reshape(*bbox_outside_weights.shape)
@@ -1107,3 +1104,55 @@ class jg_prediction_gt(caffe.Layer):
     def reshape(self, bottom, top):
         """A delta is made of 4 values, the batch size correspond to its input number of rois or number of anchor"""
         pass
+
+
+
+        rois = net.blobs['rois'].data.copy()
+        # unscale back to raw image space
+        boxes = rois[:, 1:5] / im_scales[0]
+
+        box_deltas = blobs_out['bbox_pred']
+        pred_boxes = bbox_transform_inv(boxes, box_deltas)
+        pred_boxes = clip_boxes(pred_boxes, im.shape)
+
+
+
+
+
+
+##############
+NEED TO MAKE ACCURACY Layer
+
+
+        im = cv2.imread(imdb.image_path_at(i))
+        _t['im_detect'].tic()
+        scores, boxes = frcnnt.im_detect(net, im, box_proposals)
+        _t['im_detect'].toc()
+
+        _t['misc'].tic()
+        # skip j = 0, because it's the background class
+
+        thresh=0.05
+        for j in xrange(1, imdb.num_classes):
+            inds = np.where(scores[:, j] > thresh)[0]
+            cls_scores = scores[inds, j]
+            cls_boxes = boxes[inds, j*4:(j+1)*4]
+            cls_dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])) \
+                .astype(np.float32, copy=False)
+            keep = nms(cls_dets, cfg.TEST.NMS)
+            cls_dets = cls_dets[keep, :]
+            #if vis:
+            #    vis_detections(im, imdb.classes[j], cls_dets)
+            all_boxes[j][i] = cls_dets
+
+        # Limit to max_per_image detections *over all classes*
+        max_per_image = 2000
+        if max_per_image > 0:
+            image_scores = np.hstack([all_boxes[j][i][:, -1]
+                                      for j in xrange(1, imdb.num_classes)])
+            if len(image_scores) > max_per_image:
+                image_thresh = np.sort(image_scores)[-max_per_image]
+                for j in xrange(1, imdb.num_classes):
+                    keep = np.where(all_boxes[j][i][:, -1] >= image_thresh)[0]
+                    all_boxes[j][i] = all_boxes[j][i][keep, :]
+        _t['misc'].toc()
