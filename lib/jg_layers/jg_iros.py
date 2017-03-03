@@ -1105,7 +1105,7 @@ class jg_prediction_gt(caffe.Layer):
         """A delta is made of 4 values, the batch size correspond to its input number of rois or number of anchor"""
         pass
 
-class jg_accuracy_rpn(caffe.Layer):
+class jg_map_rpn(caffe.Layer):
     """ Compute score for bbox prediction and class attribution"""
 
     def setup(self, bottom, top):
@@ -1114,133 +1114,183 @@ class jg_accuracy_rpn(caffe.Layer):
         # anchor_scales = layer_params.get('scales', (8, 16, 32))
         self.num_classes = 37 # layer_params['num_classes']
         self.num_images = 1 #5050#len(imdb.image_index)
+        self.tresh_NMS = 0.3
+        self.ovthresh=0.5
         top[0].reshape(1)
 
     def forward(self, bottom, top):
         ## BOTTOMS :
         # 0 : rois
         # 1 : cls_prob
-        # 2 : bbox_pred
-        # 3 :
+        # 2 : bbox_deltas
+        # 3 : bbox_gt
+        # 4 : im_info
 
         # all detections are collected into:
         #    all_boxes[cls][image] = N x 5 array of detections in
         #    (x1, y1, x2, y2, score)
-        all_boxes = [[[] for _ in xrange(self.num_images)] for _ in xrange(self.num_classes)]
+        all_boxes = [[[] for _ in xrange(self.batch_size)] for _ in xrange(self.num_classes)]
 
 
-        rois = net.blobs['rois'].data.copy()
+        # rois = net.blobs['rois'].data.copy()
+        rois = bottom[0].data.copy()
         # unscale back to raw image space
         boxes = rois[:, 1:5] # / im_scales[0]
-        scores = blobs_out['cls_prob']
+
+        # scores = blobs_out['cls_prob']
+        scores = bottom[1].data.copy()
 
 
-        box_deltas = blobs_out['bbox_pred']
+        # box_deltas = blobs_out['bbox_pred']
+        box_deltas = bottom[2].data.copy()
+
+        im_info = bottom[4].data
         pred_boxes = bbox_transform_inv(boxes, box_deltas)
-        pred_boxes = clip_boxes(pred_boxes, im.shape)
+
+
+        # print boxes.shape
+        # print boxes
+        # print box_deltas.shape
+        # print box_deltas
+        # print pred_boxes.shape
+        # print pred_boxes
+        # print "im_info"
+        # print im_info.shape
+        # print im_info
+        # print im_info[:2]
+        # exit()
+        pred_boxes = clip_boxes(pred_boxes, im_info[:2])
+
+        gt_boxes = bottom[3].data.copy()
 
         # skip j = 0, because it's the background class
         # for j in xrange(1, imdb.num_classes):
         ## multibatch : change i to make a loop on patch
-        i = 0
+        # i = 0
         thresh=0.05
-        for j in xrange(self.num_classes):
-            inds = np.where(scores[:, j] > thresh)[0]
-            cls_scores = scores[inds, j]
-            cls_boxes = boxes[inds, j*4:(j+1)*4]
-            cls_dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])).astype(np.float32, copy=False)
-            keep = nms(cls_dets, cfg.TEST.NMS)
-            cls_dets = cls_dets[keep, :]
-            all_boxes[j][i] = cls_dets
+        for i in xrange(self.batch_size):
+            # for each prob vector if the class prob is over tresh then it is kept (even for a same proposed roi)
+            for j in xrange(self.num_classes):
+                inds = np.where(scores[:, j] > thresh)[0] # for all detections...
+                cls_scores = scores[inds, j]
+                cls_boxes = pred_boxes[inds, j*4:(j+1)*4]
+                cls_dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])) #.astype(np.float32, copy=False)
+                # print "cls_boxes"
+                # print cls_boxes
+                # print cls_boxes.shape
+                # print "cls_dets"
+                # print cls_dets
+                # print cls_dets.shape
+                # print "cls_scores"
+                # print cls_scores
+                # print cls_scores.shape
 
-        # Limit to max_per_image detections *over all classes*
-        max_per_image = 2000
-        if max_per_image > 0:
-            image_scores = np.hstack([all_boxes[j][i][:, -1] for j in xrange(1, self.num_classes)])
-            if len(image_scores) > max_per_image:
-                image_thresh = np.sort(image_scores)[-max_per_image]
-                for j in xrange(1, self.num_classes):
-                    keep = np.where(all_boxes[j][i][:, -1] >= image_thresh)[0]
-                    all_boxes[j][i] = all_boxes[j][i][keep, :]
+                keep = nms(cls_dets, self.tresh_NMS)
+                cls_dets = cls_dets[keep, :]
+                all_boxes[j][i] = cls_dets
+
+            # Limit to max_per_image detections *over all classes*
+            max_per_image = 2000
+            if max_per_image > 0:
+                image_scores = np.hstack([all_boxes[j][i][:, -1] for j in xrange(1, self.num_classes)])
+                if len(image_scores) > max_per_image:
+                    image_thresh = np.sort(image_scores)[-max_per_image]
+                    for j in xrange(1, self.num_classes):
+                        keep = np.where(all_boxes[j][i][:, -1] >= image_thresh)[0]
+                        all_boxes[j][i] = all_boxes[j][i][keep, :]
 
         ##evaluate_detections(all_boxes, output_dir)
 
+        # available : all_boxes with 2000 detections max and only if score is above tresh
+        # format : all_boxes[0] = [box, score]
 
         aps = []
         # The PASCAL VOC metric changed in 2010
-        use_07_metric = False
-        for i, cls in enumerate(self._classes):
-            # if cls == '__background__':
-            #     continue
-            ###################################################################################
-            Joris : c'est ici que ça se passe : tu dois faire en sorte que cette fonction retour bien qqch d'utile !
-            BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
+        use_07_metric = True
+        # for i in xrange(self.num_classes):
+        for i in xrange(self.batch_size):
+            # for each prob vector if the class prob is over tresh then it is kept (even for a same proposed roi)
+            for j in xrange(self.num_classes):
+                # if cls == '__background__':
+                #     continue
+                ###################################################################################
+                # BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
+                cls_dets = all_boxes[j][i]
+                if len(cls_dets)==0:
+                    continue
+                BB = cls_dets[:,:4] # 0 BASED         but we can do : +1 # here we go in 1based pixel for pascal evaluation
 
-            # sort by confidence
-            sorted_ind = np.argsort(-confidence)
+                # confidence = np.array([float(x[1]) for x in splitlines])
+                confidence = cls_dets[:,4]
+                # sort by confidence
+                sorted_ind = np.argsort(-confidence)
+                sorted_scores = np.sort(-confidence)
+                BB = BB[sorted_ind, :]
+                # image_ids = [image_ids[x] for x in sorted_ind] #only usefull
 
+                # go down dets and mark TPs and FPs
+                # nd = len(image_ids)
+                nd = len(cls_dets)
 
-            sorted_scores = np.sort(-confidence)
-            BB = BB[sorted_ind, :]
-            image_ids = [image_ids[x] for x in sorted_ind]
+                tp = np.zeros(nd)
+                fp = np.zeros(nd)
 
-            # go down dets and mark TPs and FPs
-            nd = len(image_ids)
-            tp = np.zeros(nd)
-            fp = np.zeros(nd)
-            for d in range(nd):
-                R = class_recs[image_ids[d]]
-                bb = BB[d, :].astype(float)
-                ovmax = -np.inf
-                BBGT = R['bbox'].astype(float)
+                BBGT = gt_boxes[i,1:] #
+                already_detected = [False] * len(BBGT)
+                for d in range(nd):
+                    # R = class_recs[image_ids[d]]
+                    # BBGT = R['bbox'].astype(float)
+                    # bb = BB[d, :].astype(float)
+                    bb = BB[d, :]
 
-                if BBGT.size > 0:
-                    # compute overlaps
-                    # intersection
-                    ixmin = np.maximum(BBGT[:, 0], bb[0])
-                    iymin = np.maximum(BBGT[:, 1], bb[1])
-                    ixmax = np.minimum(BBGT[:, 2], bb[2])
-                    iymax = np.minimum(BBGT[:, 3], bb[3])
-                    iw = np.maximum(ixmax - ixmin + 1., 0.)
-                    ih = np.maximum(iymax - iymin + 1., 0.)
-                    inters = iw * ih
+                    ovmax = -np.inf
 
-                    # union
-                    uni = ((bb[2] - bb[0] + 1.) * (bb[3] - bb[1] + 1.) +
-                           (BBGT[:, 2] - BBGT[:, 0] + 1.) *
-                           (BBGT[:, 3] - BBGT[:, 1] + 1.) - inters)
+                    if BBGT.size > 0:
+                        # compute overlaps
+                        # intersection
+                        ixmin = np.maximum(BBGT[:, 0], bb[0])
+                        iymin = np.maximum(BBGT[:, 1], bb[1])
+                        ixmax = np.minimum(BBGT[:, 2], bb[2])
+                        iymax = np.minimum(BBGT[:, 3], bb[3])
+                        iw = np.maximum(ixmax - ixmin + 1., 0.)
+                        ih = np.maximum(iymax - iymin + 1., 0.)
+                        inters = iw * ih
 
-                    overlaps = inters / uni
-                    ovmax = np.max(overlaps)
-                    jmax = np.argmax(overlaps)
+                        # union
+                        uni = ((bb[2] - bb[0] + 1.) * (bb[3] - bb[1] + 1.) +
+                               (BBGT[:, 2] - BBGT[:, 0] + 1.) *
+                               (BBGT[:, 3] - BBGT[:, 1] + 1.) - inters)
 
-                if ovmax > ovthresh:
-                    if not R['difficult'][jmax]:
-                        if not R['det'][jmax]:
+                        overlaps = inters / uni
+                        ovmax = np.max(overlaps)
+                        jmax = np.argmax(overlaps)
+
+                    if ovmax > self.ovthresh:
+                        if not already_detected[jmax]:
                             tp[d] = 1.
-                            R['det'][jmax] = 1
+                            already_detected[jmax] = True
                         else:
                             fp[d] = 1.
-                else:
-                    fp[d] = 1.
+                    else:
+                        fp[d] = 1.
 
-            # compute precision recall
-            fp = np.cumsum(fp)
-            tp = np.cumsum(tp)
-            rec = tp / float(npos)
-            # avoid divide by zero in case the first detection matches a difficult
-            # ground truth
-            prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-            ap = voc_ap(rec, prec, use_07_metric)
+                # compute precision recall
+                fp = np.cumsum(fp)
+                tp = np.cumsum(tp)
+                rec = tp / float(len(BBGT))
+                # avoid divide by zero in case the first detection matches a difficult
+                # ground truth
+                prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
+                ap = voc_ap(rec, prec, use_07_metric)
 
-            ##############################################################################
-            aps += [ap]
+                ##############################################################################
+                aps += [ap]
 
 
 
         # sampled rois
-        # mAP = np.mean(aps)
-        mAP = 0.55*np.ones((1))
+        mAP = np.mean(aps)
+        # mAP = 0.55*np.ones((1))
         top[0].reshape(*mAP.shape)
         top[0].data[...] = mAP
 
@@ -1316,148 +1366,3 @@ def voc_ap(rec, prec, use_07_metric=False):
         # and sum (\Delta recall) * prec
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
-
-def voc_eval(detpath,
-             annopath,
-             imagesetfile,
-             classname,
-             cachedir,
-             ovthresh=0.5,
-             use_07_metric=False):
-    """rec, prec, ap = voc_eval(detpath,
-                                annopath,
-                                imagesetfile,
-                                classname,
-                                [ovthresh],
-                                [use_07_metric])
-
-    Top level function that does the PASCAL VOC evaluation.
-
-    detpath: Path to detections
-        detpath.format(classname) should produce the detection results file.
-    annopath: Path to annotations
-        annopath.format(imagename) should be the xml annotations file.
-    imagesetfile: Text file containing the list of images, one image per line.
-    classname: Category name (duh)
-    cachedir: Directory for caching the annotations
-    [ovthresh]: Overlap threshold (default = 0.5)
-    [use_07_metric]: Whether to use VOC07's 11 point AP computation
-        (default False)
-    """
-    # assumes detections are in detpath.format(classname)
-    # assumes annotations are in annopath.format(imagename)
-    # assumes imagesetfile is a text file with each line an image name
-    # cachedir caches the annotations in a pickle file
-
-    # first load gt
-    if not os.path.isdir(cachedir):
-        os.mkdir(cachedir)
-    cachefile = os.path.join(cachedir, 'annots.pkl')
-    # read list of images
-    with open(imagesetfile, 'r') as f:
-        lines = f.readlines()
-    imagenames = [x.strip() for x in lines]
-
-    if not os.path.isfile(cachefile):
-        # load annots
-        recs = {}
-        for i, imagename in enumerate(imagenames):
-            recs[imagename] = parse_rec(annopath.format(imagename))
-            if i % 100 == 0:
-                print 'Reading annotation for {:d}/{:d}'.format(i + 1, len(imagenames))
-        # save
-        print 'Saving cached annotations to {:s}'.format(cachefile)
-        with open(cachefile, 'w') as f:
-            cPickle.dump(recs, f)
-    else:
-        # load
-        with open(cachefile, 'r') as f:
-            recs = cPickle.load(f)
-
-    # extract gt objects for this class
-    class_recs = {}
-    npos = 0
-    for imagename in imagenames:
-        R = [obj for obj in recs[imagename] if obj['name'] == classname]
-        bbox = np.array([x['bbox'] for x in R])
-        difficult = np.array([x['difficult'] for x in R]).astype(np.bool)
-        det = [False] * len(R)
-        npos = npos + sum(~difficult)
-        class_recs[imagename] = {'bbox': bbox,
-                                 'difficult': difficult,
-                                 'det': det}
-
-    # read dets
-    detfile = detpath.format(classname)
-    with open(detfile, 'r') as f:
-        lines = f.readlines()
-
-    splitlines = [x.strip().split(' ') for x in lines]
-    image_ids = [x[0] for x in splitlines]
-    confidence = np.array([float(x[1]) for x in splitlines])
-    print len(confidence),"detections proposed for", classname
-
-    if len(confidence) == 0:
-        return 0, 0, 0
-
-
-    BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
-
-    # sort by confidence
-    sorted_ind = np.argsort(-confidence)
-
-
-    sorted_scores = np.sort(-confidence)
-    BB = BB[sorted_ind, :]
-    image_ids = [image_ids[x] for x in sorted_ind]
-
-    # go down dets and mark TPs and FPs
-    nd = len(image_ids)
-    tp = np.zeros(nd)
-    fp = np.zeros(nd)
-    for d in range(nd):
-        R = class_recs[image_ids[d]]
-        bb = BB[d, :].astype(float)
-        ovmax = -np.inf
-        BBGT = R['bbox'].astype(float)
-
-        if BBGT.size > 0:
-            # compute overlaps
-            # intersection
-            ixmin = np.maximum(BBGT[:, 0], bb[0])
-            iymin = np.maximum(BBGT[:, 1], bb[1])
-            ixmax = np.minimum(BBGT[:, 2], bb[2])
-            iymax = np.minimum(BBGT[:, 3], bb[3])
-            iw = np.maximum(ixmax - ixmin + 1., 0.)
-            ih = np.maximum(iymax - iymin + 1., 0.)
-            inters = iw * ih
-
-            # union
-            uni = ((bb[2] - bb[0] + 1.) * (bb[3] - bb[1] + 1.) +
-                   (BBGT[:, 2] - BBGT[:, 0] + 1.) *
-                   (BBGT[:, 3] - BBGT[:, 1] + 1.) - inters)
-
-            overlaps = inters / uni
-            ovmax = np.max(overlaps)
-            jmax = np.argmax(overlaps)
-
-        if ovmax > ovthresh:
-            if not R['difficult'][jmax]:
-                if not R['det'][jmax]:
-                    tp[d] = 1.
-                    R['det'][jmax] = 1
-                else:
-                    fp[d] = 1.
-        else:
-            fp[d] = 1.
-
-    # compute precision recall
-    fp = np.cumsum(fp)
-    tp = np.cumsum(tp)
-    rec = tp / float(npos)
-    # avoid divide by zero in case the first detection matches a difficult
-    # ground truth
-    prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-    ap = voc_ap(rec, prec, use_07_metric)
-
-    return rec, prec, ap
